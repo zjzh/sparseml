@@ -19,6 +19,7 @@ PyTorch version must support quantization (>=1.2, ONNX export support introduced
 """
 
 
+from copy import deepcopy
 from typing import Any, Dict, List, Optional, Union
 
 from torch.nn import Module
@@ -74,8 +75,8 @@ class QuantizationModifier(ScheduledModifier):
         not be updated. Leave None to not disable observers during QAT. Default is None
     :param freeze_bn_stats_epoch: Epoch to stop the tracking of batch norm stats. Leave
         None to not stop tracking batch norm stats during QAT. Default is None
-    :param end_epoch: Disabled, setting to anything other than -1 will raise an
-        exception. For compatibility with YAML serialization only.
+    :param end_epoch: If greater than 0, on this epoch, the model will be reverted to its
+        original non-QAT structure, but with the latest QAT layer weights
     :param model_fuse_fn_kwargs: dictionary of keyword argument values to be passed
         to the model fusing function
     """
@@ -96,13 +97,15 @@ class QuantizationModifier(ScheduledModifier):
                 "torch.nn.intrinsic. "
                 "Try upgrading your PyTorch version to use the QuantizationModifier."
             )
-        if end_epoch != -1:
-            raise ValueError(
-                "end_epoch is disabled for QuantizationModifier and can only be set to"
-                " -1. Given {}".format(end_epoch)
-            )
+        # if end_epoch != -1:
+        #     raise ValueError(
+        #         "end_epoch is disabled for QuantizationModifier and can only be set to"
+        #         " -1. Given {}".format(end_epoch)
+        #     )
 
-        super().__init__(start_epoch=start_epoch, end_epoch=-1.0, end_comparator=-1)
+        super().__init__(
+            start_epoch=start_epoch, end_epoch=end_epoch, end_comparator=-1
+        )
 
         self._start_epoch = start_epoch
         self._submodules = submodules
@@ -115,6 +118,7 @@ class QuantizationModifier(ScheduledModifier):
         self._qat_enabled = False
         self._quantization_observer_disabled = False
         self._bn_stats_frozen = False
+        self._original_model = None
 
         if (
             isinstance(self._model_fuse_fn_name, str)
@@ -296,6 +300,7 @@ class QuantizationModifier(ScheduledModifier):
             self.start_pending(epoch, steps_per_epoch)
             or self._disable_quantization_observer_update_ready(epoch)
             or self._freeze_bn_stats_update_ready(epoch)
+            or self.end_pending(epoch, steps_per_epoch)
         )
 
         return pending
@@ -305,6 +310,7 @@ class QuantizationModifier(ScheduledModifier):
     ):
         if self.start_pending(epoch, steps_per_epoch) and not self._qat_enabled:
             self._enable_module_qat(module)
+            self._started = True
 
         if self._disable_quantization_observer_update_ready(epoch):
             for quant_module in self._modules_to_quantize:
@@ -316,7 +322,18 @@ class QuantizationModifier(ScheduledModifier):
                 quant_module.apply(torch_intrinsic.qat.freeze_bn_stats)
             self._bn_stats_frozen = True
 
+        if (
+            self.end_pending(epoch, steps_per_epoch)
+            and self._qat_enabled
+            and self._end_epoch > 0
+        ):
+            import pdb
+
+            pdb.set_trace()
+            self._disable_module_qat(module)
+
     def _enable_module_qat(self, module: Module):
+        self._original_model = deepcopy(module)
         # fuse module Conv-BNs
         if (
             self._model_fuse_fn_name is not None
@@ -346,6 +363,38 @@ class QuantizationModifier(ScheduledModifier):
             # set model to QAT mode
             torch_quantization.prepare_qat(quant_module, inplace=True)
         self._qat_enabled = True
+
+    def _disable_module_qat(self, module: Module):
+        original_state_dict = self._original_model.state_dict()
+        current_state_dict = module.state_dict()
+
+        # clear all qat parameters from current state dict
+        current_state_dict = {
+            k: v
+            for k, v in current_state_dict.items()
+            if "fake_quant" not in k and "activation_post_process" not in k
+        }
+
+        # update original state dict values with current qat weights
+        for original_key, current_key in zip(original_state_dict, current_state_dict):
+            assert (
+                original_state_dict[original_key].shape
+                == current_state_dict[current_key].shape
+            ), f"key mismatch while disabling QAT: {original_key}, {current_key}"
+            original_state_dict[original_key] = current_state_dict[current_key]
+        # update original model weights to match qat weights
+        self._original_model.load_state_dict(original_state_dict)
+
+        original_children_names = list(
+            [name for name, _ in self._original_model.named_children()]
+        )
+        current_children_names = list([name for name, _ in module.named_children()])
+        assert original_children_names == current_children_names
+
+        for child_name in original_children_names:
+            setattr(module, child_name, getattr(self._original_model, child_name))
+
+        self._qat_enabled = False
 
     def _disable_quantization_observer_update_ready(self, epoch: float) -> bool:
         return (
