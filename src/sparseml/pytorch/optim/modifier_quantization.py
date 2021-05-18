@@ -327,9 +327,6 @@ class QuantizationModifier(ScheduledModifier):
             and self._qat_enabled
             and self._end_epoch > 0
         ):
-            import pdb
-
-            pdb.set_trace()
             self._disable_module_qat(module)
 
     def _enable_module_qat(self, module: Module):
