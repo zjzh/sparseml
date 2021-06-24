@@ -7,7 +7,7 @@ def convert_collection(args):
         with open(args.collection_path, encoding='utf-8') as f:
             for i, line in enumerate(f):
                 id, body = line.split('\t')
-                output_dict = {'id': id, 'input': body}
+                output_dict = {'id': id, 'input': body, 'target': ''}
                 w.write(json.dumps(output_dict) + '\n')
 
 

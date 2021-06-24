@@ -128,6 +128,8 @@ import numpy
 import nltk
 import wandb
 import numpy
+import torch
+import torch.nn.functional as F
 from datasets import load_dataset, load_metric
 
 import transformers
@@ -249,7 +251,7 @@ class DataTrainingArguments:
         },
     )
     test_file: Optional[str] = field(
-        default='data/doc_query_to_predict.json',
+        default='data/doc_query_to_predict_small.json',
         metadata={
             "help": "An optional input test data file to evaluate the metrics (rouge) on " "(a jsonlines or csv file)."
         },
@@ -514,11 +516,6 @@ def main():
             load_from_cache_file=not data_args.overwrite_cache,
         )
 
-    def preprocess_predict_function(examples):
-        inputs = examples['input']
-        inputs = [prefix + inp for inp in inputs]
-        model_inputs = tokenizer(inputs, max_length=data_args.max_source_length, padding=padding, truncation=True)
-        return model_inputs
 
     if training_args.do_predict:
         max_target_length = data_args.val_max_target_length
@@ -528,7 +525,7 @@ def main():
         if data_args.max_predict_samples is not None:
             predict_dataset = predict_dataset.select(range(data_args.max_predict_samples))
         predict_dataset = predict_dataset.map(
-            preprocess_predict_function,
+            preprocess_function,
             batched=True,
             num_proc=data_args.preprocessing_num_workers,
             remove_columns=column_names,
@@ -546,7 +543,7 @@ def main():
 
     # Metric
     metric = load_metric("rouge")
-
+    import pdb
     def postprocess_text(preds, labels):
         preds = [pred.strip() for pred in preds]
         labels = [label.strip() for label in labels]
@@ -554,21 +551,26 @@ def main():
         preds = ["\n".join(nltk.sent_tokenize(pred)) for pred in preds]
         labels = ["\n".join(nltk.sent_tokenize(label)) for label in labels]
         return preds, labels
-    import pdb
+
     def compute_metrics(eval_preds):
         preds, labels = eval_preds
+        labels = numpy.where(labels != -100, labels, tokenizer.pad_token_id)
+        decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
         if isinstance(preds, tuple):
             preds = preds[0]
-        print(preds)
-        print(labels)
-        print(preds.shape)
-        print(labels.shape)
-        pdb.set_trace()
+        tpreds = torch.from_numpy(preds)
+        _, words  = torch.topk(tpreds, 1, 2) #beam size 1
+        words = words.squeeze(-1)
+        preds = []
+        logger.info("Post Processing Predictions")
+        for i in range(words.shape[0]):
+            eos_index = numpy.argwhere(words[i]==1).squeeze()
+            if len(eos_index.shape) > 0 and len(eos_index) > 0:
+                eos_index = numpy.argwhere(words[i]==1).squeeze()[0]
+            else:
+                eos_index = data_args.val_max_target_length
+            preds.append(words[i][:int(eos_index) + 1])
         decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
-        if data_args.ignore_pad_token_for_loss:
-            # Replace -100 in the labels as we can't decode them.
-            labels = numpy.where(labels != -100, labels, tokenizer.pad_token_id)
-        decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
 
         # Some simple post-processing
         decoded_preds, decoded_labels = postprocess_text(decoded_preds, decoded_labels)
@@ -632,12 +634,44 @@ def main():
     if training_args.do_predict:
         logger.info("*** Predict ***")
 
-        predict_results = trainer.predict(
+        values = trainer.predict(
             predict_dataset,
             metric_key_prefix="predict",
             max_length=data_args.val_max_target_length,
             num_beams=data_args.num_beams,
         )
+        labels, predictions = values
+        print(labels)
+        print(prediction)
+        
+        labels = numpy.where(labels != -100, labels, tokenizer.pad_token_id)
+        decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
+        if isinstance(preds, tuple):
+            preds = preds[0]
+        tpreds = torch.from_numpy(preds)
+        _, words  = torch.topk(tpreds, 1, 2) #beam size 1
+        words = words.squeeze(-1)
+        preds = []
+        logger.info("Post Processing Predictions")
+        for i in range(words.shape[0]):
+            eos_index = numpy.argwhere(words[i]==1).squeeze()
+            if len(eos_index.shape) > 0 and len(eos_index) > 0:
+                eos_index = numpy.argwhere(words[i]==1).squeeze()[0]
+            else:
+                eos_index = data_args.val_max_target_length
+            preds.append(words[i][:int(eos_index) + 1])
+        decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
+
+        # Some simple post-processing
+        decoded_preds, decoded_labels = postprocess_text(decoded_preds, decoded_labels)
+
+        result = metric.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
+        print("ROUGE:{}".format(result))
+        result = {key: value.mid.fmeasure * 100 for key, value in result.items()}
+
+        prediction_lens = [numpy.count_nonzero(pred != tokenizer.pad_token_id) for pred in preds]
+        result["gen_len"] = numpy.mean(prediction_lens)
+        result = {k: round(v, 4) for k, v in result.items()}
         metrics = predict_results.metrics
         max_predict_samples = (
             data_args.max_predict_samples if data_args.max_predict_samples is not None else len(predict_dataset)
