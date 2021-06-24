@@ -123,10 +123,11 @@ from dataclasses import dataclass, field
 from typing import Optional
 import random
 import math
+import numpy
 
 import nltk
 import wandb
-import numpy as np
+import numpy
 from datasets import load_dataset, load_metric
 
 import transformers
@@ -158,9 +159,7 @@ from transformers.file_utils import is_offline_mode
 from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version
 
-from sparseml.pytorch.optim.manager import ScheduledModifierManager
-from sparseml.pytorch.optim.optimizer import ScheduledOptimizer
-from sparseml.pytorch.utils import ModuleExporter, logger
+from sparseml_utils import SparseMLSeq2SeqTrainer, export_model
 
 logger = logging.getLogger(__name__)
 
@@ -183,13 +182,22 @@ class ModelArguments:
     """
 
     model_name_or_path: str = field(
-        default='t5-base', metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
+        default=None, metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
+    )
+    distill_teacher: Optional[str] = field(
+        default=None, metadata={"help": "Path to a pretrained Doc2Query Model to be used for distillation"}
+    )
+    distill_temperature: Optional[float] = field(
+        default=2.0, metadata={"help": "Temperature applied to teacher softmax for distillation."}
+    )
+    distill_hardness: Optional[float] = field(
+        default=1.0, metadata={"help": "Proportion of loss coming from teacher model."}
     )
     config_name: Optional[str] = field(
-        default='t5-base', metadata={"help": "Pretrained config name or path if not the same as model_name"}
+        default=None, metadata={"help": "Pretrained config name or path if not the same as model_name"}
     )
     tokenizer_name: Optional[str] = field(
-        default='t5-base', metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"}
+        default=None, metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"}
     )
     cache_dir: Optional[str] = field(
         default=None,
@@ -211,56 +219,37 @@ class ModelArguments:
         },
     )
 
-
 @dataclass
 class DataTrainingArguments:
     """
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
-    ####################################################################################
-    # Start SparseML Integration
-    ####################################################################################
-    nm_prune_config: Optional[str] = field(
-        default='90sparse.yaml', metadata={"help": "The input file name for the Neural Magic pruning config"}
-    )
-    do_onnx_export: bool = field(
-        default=False, metadata={"help": "Export model to onnx"}
+    recipe: Optional[str] = field(
+        default=None,
+        metadata={"help": "Path to a SparseML sparsification recipe, see https://github.com/neuralmagic/sparseml "
+                  "for more information"},
     )
     onnx_export_path: Optional[str] = field(
-        default='onnx-export', metadata={"help": "The filename and path which will be where onnx model is outputed"}
+        default=None, metadata={"help": "The filename and path which will be where onnx model is outputed"}
     )
-    layers_to_keep: int = field(
-        default=12, metadata={"help":"How many layers to keep for the model"}
-    )
-    ####################################################################################
-    # End SparseML Integration
-    ####################################################################################
     dataset_name: Optional[str] = field(
         default=None, metadata={"help": "The name of the dataset to use (via the datasets library)."}
     )
     dataset_config_name: Optional[str] = field(
         default=None, metadata={"help": "The configuration name of the dataset to use (via the datasets library)."}
     )
-    text_column: Optional[str] = field(
-        default=None,
-        metadata={"help": "The name of the column in the datasets containing the full texts (for summarization)."},
-    )
-    summary_column: Optional[str] = field(
-        default=None,
-        metadata={"help": "The name of the column in the datasets containing the summaries (for summarization)."},
-    )
     train_file: Optional[str] = field(
         default="data/doc_query_train.json", metadata={"help": "The input training data file (a jsonlines or csv file)."}
     )
     validation_file: Optional[str] = field(
-        default='data/doc_query_dev.json',
+        default='data/doc_query_dev_small.json',
         metadata={
             "help": "An optional input evaluation data file to evaluate the metrics (rouge) on "
             "(a jsonlines or csv file)."
         },
     )
     test_file: Optional[str] = field(
-        default=None,
+        default='data/doc_query_to_predict.json',
         metadata={
             "help": "An optional input test data file to evaluate the metrics (rouge) on " "(a jsonlines or csv file)."
         },
@@ -340,7 +329,6 @@ class DataTrainingArguments:
     source_prefix: Optional[str] = field(
         default=None, metadata={"help": "A prefix to add before every source text (useful for T5 models)."}
     )
-
     def __post_init__(self):
         if self.dataset_name is None and self.train_file is None and self.validation_file is None:
             raise ValueError("Need either a dataset name or a training/validation file.")
@@ -354,78 +342,12 @@ class DataTrainingArguments:
         if self.val_max_target_length is None:
             self.val_max_target_length = self.max_target_length
 
-####################################################################################
-# Start SparseML Integration
-####################################################################################
-def load_optimizer(model, args):
-    no_decay = ["bias", "LayerNorm.weight"]
-    optimizer_grouped_parameters = [
-        {
-            "params": [
-                p
-                for n, p in model.named_parameters()
-                if not any(nd in n for nd in no_decay)
-            ],
-            "weight_decay": args.weight_decay,
-        },
-        {
-            "params": [
-                p
-                for n, p in model.named_parameters()
-                if any(nd in n for nd in no_decay)
-            ],
-            "weight_decay": 0.0,
-        },
-    ]
-    optimizer_cls = AdamW
-    optimizer_kwargs = {
-        "betas": (args.adam_beta1, args.adam_beta2),
-        "eps": args.adam_epsilon,
-    }
-    optimizer_kwargs["lr"] = args.learning_rate
-    return optimizer_cls(optimizer_grouped_parameters, **optimizer_kwargs)
-
-def convert_example_to_features(example, tokenizer, max_seq_length, sentence1_key, sentence2_key):
-    tokens = []
-    segment_ids = []
-    tokens.append("[CLS]")
-    segment_ids.append(0)
-    for t in tokenizer.tokenize(example[sentence1_key])[:int(max_seq_length/2)]:
-        tokens.append(t)
-        segment_ids.append(0)
-    tokens.append("[SEP]")
-    segment_ids.append(0)
-    if sentence1_key != None:
-        for t in tokenizer.tokenize(example[sentence2_key])[:int(max_seq_length/2)]:
-            tokens.append(t)
-            segment_ids.append(0)
-        tokens.append("[SEP]")
-        segment_ids.append(1)
-    input_ids = tokenizer.convert_tokens_to_ids(tokens)
-    input_mask = [1] * len(input_ids)
-    while len(input_ids) < max_seq_length:
-        input_ids.append(0)
-        input_mask.append(0)
-        segment_ids.append(0)
-    return (
-            torch.from_numpy(np.array([np.array(input_ids, dtype=np.int64)])),
-            torch.from_numpy(np.array([np.array(input_mask, dtype=np.int64)])),
-            torch.from_numpy(np.array([np.array(segment_ids, dtype=np.int64)])),
-        ) 
-
 def main():
-    # See all possible arguments in src/transformers/training_args.py
-    # or by passing the --help flag to this script.
-    # We now keep distinct sets of args, for a cleaner separation of concerns.
-
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
-        # If we pass only one argument to the script and it's the path to a json file,
-        # let's parse it to get our arguments.
         model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
-
     if data_args.source_prefix is None and model_args.model_name_or_path in [
         "t5-small",
         "t5-base",
@@ -468,41 +390,23 @@ def main():
     )
     logger.info(f"Training/evaluation parameters {training_args}")
 
-    # Set seed before initializing model.
     set_seed(training_args.seed)
 
-    # Get the datasets: you can either provide your own CSV/JSON training and evaluation files (see below)
-    # or just provide the name of one of the public datasets available on the hub at https://huggingface.co/datasets/
-    # (the dataset will be downloaded automatically from the datasets Hub).
-    #
-    # For CSV/JSON files this script will use the first column for the full texts and the second column for the
-    # summaries (unless you specify column names for this with the `text_column` and `summary_column` arguments).
-    #
-    # In distributed training, the load_dataset function guarantee that only one local process can concurrently
-    # download the dataset.
-    if data_args.dataset_name is not None:
-        # Downloading and loading a dataset from the hub.
+    if data_args.dataset_name is not None: #Need to upload datasets
         datasets = load_dataset(data_args.dataset_name, data_args.dataset_config_name, cache_dir=model_args.cache_dir)
     else:
         data_files = {}
-        if data_args.train_file is not None:
+        if data_args.train_file is not None and training_args.do_train:
             data_files["train"] = data_args.train_file
             extension = data_args.train_file.split(".")[-1]
-        if data_args.validation_file is not None:
+        if data_args.validation_file is not None and training_args.do_eval:
             data_files["validation"] = data_args.validation_file
             extension = data_args.validation_file.split(".")[-1]
-        if data_args.test_file is not None:
+        if data_args.test_file is not None and training_args.do_predict:
             data_files["test"] = data_args.test_file
             extension = data_args.test_file.split(".")[-1]
         datasets = load_dataset(extension, data_files=data_files, cache_dir=model_args.cache_dir)
-    # See more about loading any type of standard or custom dataset (from files, python dict, pandas DataFrame, etc) at
-    # https://huggingface.co/docs/datasets/loading_datasets.html.
 
-    # Load pretrained model and tokenizer
-    #
-    # Distributed training:
-    # The .from_pretrained methods guarantee that only one local process can concurrently
-    # download model & vocab.
     config = AutoConfig.from_pretrained(
         model_args.config_name if model_args.config_name else model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
@@ -524,15 +428,29 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
+    model_parameters = filter(lambda p: p.requires_grad, model.parameters())
+    params = sum([numpy.prod(p.size()) for p in model_parameters])
+    logger.info("Model has %s parameters", params)
     model.resize_token_embeddings(len(tokenizer))
-    print(model)
+
+    teacher_model = None
+    if model_args.distill_teacher is not None:
+        teacher_model = AutoModelForSeq2SeqLM.from_pretrained(
+            model_args.distill_teacher,
+            from_tf=bool(".ckpt" in model_args.distill_teacher),
+            config=config,
+            cache_dir=model_args.cache_dir,
+        )
+        teacher_model_parameters = filter(lambda p: p.requires_grad, teacher_model.parameters())
+        params = sum([numpy.prod(p.size()) for p in teacher_model_parameters])
+        logger.info("Teacher Model has %s parameters", params)
+        teacher_model.resize_token_embeddings(len(tokenizer))
+    
     if model.config.decoder_start_token_id is None:
         raise ValueError("Make sure that `config.decoder_start_token_id` is correctly defined")
 
     prefix = data_args.source_prefix if data_args.source_prefix is not None else ""
 
-    # Preprocessing the datasets.
-    # We need to tokenize inputs and targets.
     if training_args.do_train:
         column_names = datasets["train"].column_names
     elif training_args.do_eval:
@@ -542,24 +460,6 @@ def main():
     else:
         logger.info("There is nothing to do. Please pass `do_train`, `do_eval` and/or `do_predict`.")
         return
-
-    # Get the column names for input/target.
-    if data_args.text_column is None:
-        text_column = dataset_columns[0] if dataset_columns is not None else column_names[0]
-    else:
-        text_column = data_args.text_column
-        if text_column not in column_names:
-            raise ValueError(
-                f"--text_column' value '{data_args.text_column}' needs to be one of: {', '.join(column_names)}"
-            )
-    if data_args.summary_column is None:
-        summary_column = dataset_columns[1] if dataset_columns is not None else column_names[1]
-    else:
-        summary_column = data_args.summary_column
-        if summary_column not in column_names:
-            raise ValueError(
-                f"--summary_column' value '{data_args.summary_column}' needs to be one of: {', '.join(column_names)}"
-            )
 
     # Temporarily set max_target_length for training.
     max_target_length = data_args.max_target_length
@@ -576,20 +476,15 @@ def main():
         targets = examples['target']
         inputs = [prefix + inp for inp in inputs]
         model_inputs = tokenizer(inputs, max_length=data_args.max_source_length, padding=padding, truncation=True)
-
-        # Setup the tokenizer for targets
         with tokenizer.as_target_tokenizer():
             labels = tokenizer(targets, max_length=max_target_length, padding=padding, truncation=True)
-
-        # If we are padding here, replace all tokenizer.pad_token_id in the labels by -100 when we want to ignore
-        # padding in the loss.
         if padding == "max_length" and data_args.ignore_pad_token_for_loss:
             labels["input_ids"] = [
                 [(l if l != tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"]
             ]
-
         model_inputs["labels"] = labels["input_ids"]
         return model_inputs
+
     if training_args.do_train:
         if "train" not in datasets:
             raise ValueError("--do_train requires a train dataset")
@@ -603,6 +498,7 @@ def main():
             remove_columns=column_names,
             load_from_cache_file=not data_args.overwrite_cache,
         )
+
     if training_args.do_eval:
         max_target_length = data_args.val_max_target_length
         if "validation" not in datasets:
@@ -618,6 +514,12 @@ def main():
             load_from_cache_file=not data_args.overwrite_cache,
         )
 
+    def preprocess_predict_function(examples):
+        inputs = examples['input']
+        inputs = [prefix + inp for inp in inputs]
+        model_inputs = tokenizer(inputs, max_length=data_args.max_source_length, padding=padding, truncation=True)
+        return model_inputs
+
     if training_args.do_predict:
         max_target_length = data_args.val_max_target_length
         if "test" not in datasets:
@@ -626,12 +528,13 @@ def main():
         if data_args.max_predict_samples is not None:
             predict_dataset = predict_dataset.select(range(data_args.max_predict_samples))
         predict_dataset = predict_dataset.map(
-            preprocess_function,
+            preprocess_predict_function,
             batched=True,
             num_proc=data_args.preprocessing_num_workers,
             remove_columns=column_names,
             load_from_cache_file=not data_args.overwrite_cache,
         )
+
     # Data collator
     label_pad_token_id = -100 if data_args.ignore_pad_token_for_loss else tokenizer.pad_token_id
     data_collator = DataCollatorForSeq2Seq(
@@ -647,57 +550,50 @@ def main():
     def postprocess_text(preds, labels):
         preds = [pred.strip() for pred in preds]
         labels = [label.strip() for label in labels]
-
         # rougeLSum expects newline after each sentence
         preds = ["\n".join(nltk.sent_tokenize(pred)) for pred in preds]
         labels = ["\n".join(nltk.sent_tokenize(label)) for label in labels]
-
         return preds, labels
-
+    import pdb
     def compute_metrics(eval_preds):
         preds, labels = eval_preds
         if isinstance(preds, tuple):
             preds = preds[0]
+        print(preds)
+        print(labels)
+        print(preds.shape)
+        print(labels.shape)
+        pdb.set_trace()
         decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
         if data_args.ignore_pad_token_for_loss:
             # Replace -100 in the labels as we can't decode them.
-            labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
+            labels = numpy.where(labels != -100, labels, tokenizer.pad_token_id)
         decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
 
         # Some simple post-processing
         decoded_preds, decoded_labels = postprocess_text(decoded_preds, decoded_labels)
 
         result = metric.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
-        # Extract a few results from ROUGE
+        print("ROUGE:{}".format(result))
         result = {key: value.mid.fmeasure * 100 for key, value in result.items()}
 
-        prediction_lens = [np.count_nonzero(pred != tokenizer.pad_token_id) for pred in preds]
-        result["gen_len"] = np.mean(prediction_lens)
+        prediction_lens = [numpy.count_nonzero(pred != tokenizer.pad_token_id) for pred in preds]
+        result["gen_len"] = numpy.mean(prediction_lens)
         result = {k: round(v, 4) for k, v in result.items()}
         return result
 
-    ####################################################################################
-    # Start SparseML Integration
-    #################################################################################### 
-    import pdb
-#    pdb.set_trace()
-    if training_args.do_train:
-        optim = load_optimizer(model, training_args)
-        steps_per_epoch = math.ceil(len(train_dataset) / (training_args.per_device_train_batch_size*training_args._n_gpu))
-        manager = ScheduledModifierManager.from_yaml(data_args.nm_prune_config)
-        training_args.num_train_epochs = float(manager.max_epochs)
-        optim = ScheduledOptimizer(optim, model, manager, steps_per_epoch=steps_per_epoch, loggers=None)
-    
-    # Initialize our Trainer
-    trainer = Seq2SeqTrainer(
+    trainer = SparseMLSeq2SeqTrainer(
+        data_args.recipe,
+        teacher=teacher_model,
+        distill_hardness=model_args.distill_hardness,
+        distill_temperature=model_args.distill_temperature,
         model=model,
         args=training_args,
         train_dataset=train_dataset if training_args.do_train else None,
         eval_dataset=eval_dataset if training_args.do_eval else None,
         tokenizer=tokenizer,
         data_collator=data_collator,
-        compute_metrics=compute_metrics if training_args.predict_with_generate else None,
-        optimizers=(optim, None) if training_args.do_train else (None, None),
+        compute_metrics=compute_metrics,
     )
 
     # Training
@@ -724,7 +620,6 @@ def main():
     results = {}
     if training_args.do_eval:
         logger.info("*** Evaluate ***")
-
         metrics = trainer.evaluate(
             max_length=data_args.val_max_target_length, num_beams=data_args.num_beams, metric_key_prefix="eval"
         )
@@ -774,26 +669,10 @@ def main():
 
         trainer.push_to_hub(**kwargs)
     
-    ####################################################################################
-    # Start SparseML Integration
-    ####################################################################################
-    if data_args.do_onnx_export:
+    if data_args.onnx_export_path:
         logger.info("*** Export to ONNX ***")
-        os.environ["TOKENIZERS_PARALLELISM"] = "false"
-        exporter = ModuleExporter(
-            student_model, output_dir=data_args.onnx_export_path
-        )
-        sample_batch = convert_example_to_features(
-            datasets["train"][0],
-            tokenizer,
-            data_args.max_seq_length,
-            sentence1_key, 
-            sentence2_key,
-        )
-        exporter.export_onnx(sample_batch=sample_batch)
-    ####################################################################################
-    # End SparseML Integration
-    ####################################################################################
+        eval_dataloader = trainer.get_eval_dataloader(eval_dataset)
+        export_model(model, eval_dataloader, data_args.onnx_export_path)
     return results
 
 def _mp_fn(index):

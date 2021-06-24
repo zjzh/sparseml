@@ -6,9 +6,10 @@ Doc2query introduced a simple and direct method to integrate neural information 
 A sequence to sequence is trained with the input being passages(short context windows) and the target being the relevant query. Since the MSMARCO coprus features over 500,000 relevant passages methods like T5 can be leveraged. Unfortunatley, without compression existing T5 takes the index generation from 10 minutes(16 threads on a 14 core Intel(R) Xeon(R) Gold 5120 CPU @ 2.20GHz) to > using 4 16 GB V100
 ## Results
 
-| Method       | Sparsity | MRR @10 MSMARCO Dev | Latency(s) per 1000 queries | Index Generation (S)|Citation        |
-|--------------|----------|---------------------|-----------------------------|---------------------|----------------|
-|BM25(Anserini)|0         |0.1874               |79.85                        |00:10:16
+| Method       | Sparsity | MRR @10 MSMARCO Dev | Latency(s) per 1000 queries | Index Generation (HH:MM:SS)|Citation        |
+|--------------|----------|---------------------|-----------------------------|----------------------------|----------------|
+|BM25(Anserini)|0         |0.1874               |79.85                        |00:10:16                    |                |
+|Doc2Query     |0         |
 
 
 ### Baseline
@@ -41,7 +42,13 @@ QueriesRanked: 6980
 
 ### Doc2Query
 
-Format the data for training
+Format the data for training and train a T5 Model for 5 epoch. This will take about 5 hours on a server with  4 V100(16gb)
 
 ```sh
- python src/make_doc2query_data.py --collection_file data/collection.tsv --query_file data.queries.tsv --train_qrel_file data/qrels.train.tsv --dev_qrel_file data/qrels.dev.tsv --output_file_prefix data/doc_query_
+python src/make_doc2query_data.py --collection_file data/collection.tsv --query_file data/queries.tsv --train_qrel_file data/qrels.train.tsv --dev_qrel_file data/qrels.dev.tsv --output_file_prefix data/doc_query_
+head -n 1000 data/doc_query_dev.json > data/doc_query_dev_small.json
+python src/convert_doc_collection_to_json.py --collection_path data/collection.tsv --output_path data/doc_query_to_predict.json
+python src/run_doc2query.py --model_name_or_path t5-base --do_train --do_eval --evaluation_strategy steps --eval_steps 7858 --source_prefix "summarize: " --output_dir doc2query_baseline --overwrite_output_dir --per_device_train_batch_size=16 --per_device_eval_batch_size=16 --cache_dir cache/ --save_strategy epoch
+python run_doc2query.py --model_name_or_path doc2query_baseline  --source_prefix "summarize: "  --do_predict --overwrite_output_dir --per_device_eval_batch_size=16 --text_column input --summary_column target
+
+```

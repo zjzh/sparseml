@@ -6,10 +6,9 @@ import torch.nn.functional as F
 from sparseml.pytorch.optim.manager import ScheduledModifierManager
 from sparseml.pytorch.optim.optimizer import ScheduledOptimizer
 from sparseml.pytorch.utils import ModuleExporter, logger
-from trainer_qa import QuestionAnsweringTrainer
+from transformers import Seq2SeqTrainer
 
-
-class SparseMLQATrainer(QuestionAnsweringTrainer):
+class SparseMLSeq2SeqTrainer(Seq2SeqTrainer):
     """
     Question Answering trainer with SparseML integration
 
