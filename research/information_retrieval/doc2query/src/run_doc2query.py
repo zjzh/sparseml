@@ -533,7 +533,9 @@ def main():
         model_inputs["labels"] = labels["input_ids"]
         return model_inputs
 
+    prediction_file = None
     if training_args.do_predict:
+        prediction_file = os.path.join(training_args.output_dir, "predictions.txt")
         max_target_length = data_args.val_max_target_length
         if "test" not in datasets:
             raise ValueError("--do_predict requires a test dataset")
@@ -596,12 +598,13 @@ def main():
         prediction_lens = [numpy.count_nonzero(pred != tokenizer.pad_token_id) for pred in preds]
         result["gen_len"] = numpy.mean(prediction_lens)
         result = {k: round(v, 4) for k, v in result.items()}
-        result['predictions'] = decoded_preds
+        #result['predictions'] = decoded_preds
         return result
 
     trainer = SparseMLSeq2SeqTrainer(
         data_args.recipe,
         teacher=teacher_model,
+        prediction_file=prediction_file,
         distill_hardness=model_args.distill_hardness,
         distill_temperature=model_args.distill_temperature,
         model=model,

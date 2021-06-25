@@ -1,4 +1,9 @@
+import logging
+import collections
 import math
+import time
+import json
+import os
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
 import pdb
@@ -12,7 +17,12 @@ from sparseml.pytorch.optim.optimizer import ScheduledOptimizer
 from sparseml.pytorch.utils import ModuleExporter, logger
 
 from transformers import Seq2SeqTrainer
-from transformers.trainer_utils import PredictionOutput
+from transformers.trainer_utils import PredictionOutput, EvalLoopOutput
+from transformers.file_utils import is_torch_tpu_available
+from transformers.trainer_pt_utils import find_batch_size
+
+logger = logging.getLogger(__name__)
+
 class SparseMLSeq2SeqTrainer(Seq2SeqTrainer):
     """
     Question Answering trainer with SparseML integration
@@ -37,8 +47,6 @@ class SparseMLSeq2SeqTrainer(Seq2SeqTrainer):
         self.loggers = None
         if self.recipe is not None:
             loggers = []
-            if "wandb" in self.args.report_to:
-                loggers.append(logger.WANDBLogger())
             self.loggers = loggers
 
     def create_optimizer(self):
@@ -112,7 +120,7 @@ class SparseMLSeq2SeqTrainer(Seq2SeqTrainer):
         return (loss, outputs) if return_outputs else loss
 
     def predict(
-        self, test_dataset: Dataset, ignore_keys: Optional[List[str]] = None, metric_key_prefix: str = "test"
+        self, test_dataset: Dataset, ignore_keys: Optional[List[str]] = None, metric_key_prefix: str = "test", max_length: int = 32, num_beams: int = 3
     ) -> PredictionOutput:
         """
         Run prediction and returns predictions and potential metrics.
@@ -140,7 +148,8 @@ class SparseMLSeq2SeqTrainer(Seq2SeqTrainer):
         """
         # memory metrics - must set up as early as possible
         self._memory_tracker.start()
-
+        self._max_length = max_length
+        self._num_beams = num_beams
         test_dataloader = self.get_test_dataloader(test_dataset)
         start_time = time.time()
         output = self.prediction_loop(

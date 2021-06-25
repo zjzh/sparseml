@@ -25,7 +25,7 @@ cat queries.dev.tsv queries.train.tsv queries.eval.tsv > queries.tsv
 To format the collections file, build simple index, run on msmarco dev set and evaluate which should produce outpu
 ```
 mkdir data/base_collection
-python src/convert_doc_collection_to_jsonl.py --collection_path data/collection.tsv --output_path data/base_collection/collection
+python src/convert_doc_collection_to_json.py --collection_path data/collection.tsv --output_path data/base_collection/collection
 python -m pyserini.index -collection JsonCollection -generator DefaultLuceneDocumentGenerator \
  -threads 16 -input data/base_collection \
  -index indexes/msmarco-passage-baseline -storePositions -storeDocvectors -storeRaw
@@ -42,13 +42,12 @@ QueriesRanked: 6980
 
 ### Doc2Query
 
-Format the data for training and train a T5 Model for 5 epoch. This will take about 5 hours on a server with  4 V100(16gb)
+Format the data for training and train a T5 Model for 5 epoch. Training will take about 5 hours on a server with 4 V100(16gb) and generating predicted queries will take about 15 min
 
 ```sh
 python src/make_doc2query_data.py --collection_file data/collection.tsv --query_file data/queries.tsv --train_qrel_file data/qrels.train.tsv --dev_qrel_file data/qrels.dev.tsv --output_file_prefix data/doc_query_
 head -n 1000 data/doc_query_dev.json > data/doc_query_dev_small.json
 python src/convert_doc_collection_to_json.py --collection_path data/collection.tsv --output_path data/doc_query_to_predict.json
-python src/run_doc2query.py --model_name_or_path t5-base --do_train --do_eval --evaluation_strategy steps --eval_steps 7858 --source_prefix "summarize: " --output_dir doc2query_baseline --overwrite_output_dir --per_device_train_batch_size=16 --per_device_eval_batch_size=16 --cache_dir cache/ --save_strategy epoch
-python run_doc2query.py --model_name_or_path doc2query_baseline  --source_prefix "summarize: "  --do_predict --overwrite_output_dir --per_device_eval_batch_size=16 --text_column input --summary_column target
-
+python src/run_doc2query.py --model_name_or_path t5-base --do_train --do_eval --evaluation_strategy steps --eval_steps 2400 --source_prefix "summarize: " --output_dir doc2query_baseline --overwrite_output_dir --per_device_train_batch_size=16 --per_device_eval_batch_size=16 --cache_dir cache/ --save_strategy epoch --seed 42 --recipe recipes/t5-base-24layers-prune0.md
+python run_doc2query.py --model_name_or_path doc2query_baseline  --source_prefix "summarize: "  --do_predict --overwrite_output_dir --per_device_eval_batch_size=100 --text_column input --summary_column target
 ```
