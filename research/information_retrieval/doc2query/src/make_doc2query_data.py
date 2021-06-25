@@ -21,32 +21,32 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--collection_file",
-        default="collection.tsv",
+        default="data/collection.tsv",
         type=str,
         help="The msmarco passage collection file",
     )
     parser.add_argument(
         "--query_file",
         type=str,
-        default="queries.tsv",
+        default="data/queries.tsv",
         help="Qid to query for all msmarco queries",
     )
     parser.add_argument(
         "--train_qrel_file",
         type=str,
-        default="qrels.train.tsv",
+        default="data/qrels.train.tsv",
         help="The input file in TSV form of doc2query",
     )
     parser.add_argument(
         "--dev_qrel_file",
         type=str,
-        default="qrels.dev.tsv",
+        default="data/qrels.dev.tsv",
         help="The input file in TSV form of doc2query",
     )
     parser.add_argument(
         "--output_file_prefix",
         type=str,
-        default="doc_query_",
+        default="data/doc_query_",
         help="The input file in TSV form of doc2query",
     )
     args = parser.parse_args()
@@ -60,6 +60,10 @@ def main():
     with open(args.output_file_prefix+"dev.json",'w') as w:    
         for qrel in dev_qrels:
             w.write("{}\n".format(json.dumps({"input":dev_qrels[qrel], "target":qrel})))
+    with open(args.output_file_prefix+"to_predict.json",'w') as w:    
+        for doc_id in collection:
+            w.write("{}\n".format(json.dumps({"input":collection[doc_id], "target":str(doc_id)})))
+
 
 
 if __name__ == "__main__":

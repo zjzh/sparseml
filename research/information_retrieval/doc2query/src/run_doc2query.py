@@ -118,6 +118,7 @@ python examples/transformers/run_glue.py \
 """
 import logging
 import os
+import json
 import sys
 from dataclasses import dataclass, field
 from typing import Optional
@@ -125,6 +126,7 @@ import random
 import math
 import numpy
 
+import pdb #Remove after done tweaking
 import nltk
 import wandb
 import numpy
@@ -251,7 +253,7 @@ class DataTrainingArguments:
         },
     )
     test_file: Optional[str] = field(
-        default='data/doc_query_to_predict_small.json',
+        default='data/doc_query_to_predict.json',
         metadata={
             "help": "An optional input test data file to evaluate the metrics (rouge) on " "(a jsonlines or csv file)."
         },
@@ -316,7 +318,7 @@ class DataTrainingArguments:
         },
     )
     num_beams: Optional[int] = field(
-        default=None,
+        default=1,
         metadata={
             "help": "Number of beams to use for evaluation. This argument will be passed to ``model.generate``, "
             "which is used during ``evaluate`` and ``predict``."
@@ -516,6 +518,20 @@ def main():
             load_from_cache_file=not data_args.overwrite_cache,
         )
 
+    def preprocess_predict_function(examples):
+        inputs = examples['input']
+        targets = examples['target']
+        inputs = [prefix + inp for inp in inputs]
+        model_inputs = tokenizer(inputs, max_length=data_args.max_source_length, padding=padding, truncation=True)
+        model_inputs["doc_ids"] =  examples['target']
+        with tokenizer.as_target_tokenizer():
+            labels = tokenizer(targets, max_length=max_target_length, padding=padding, truncation=True)
+        if padding == "max_length" and data_args.ignore_pad_token_for_loss:
+            labels["input_ids"] = [
+                [(l if l != tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"]
+            ]
+        model_inputs["labels"] = labels["input_ids"]
+        return model_inputs
 
     if training_args.do_predict:
         max_target_length = data_args.val_max_target_length
@@ -525,7 +541,7 @@ def main():
         if data_args.max_predict_samples is not None:
             predict_dataset = predict_dataset.select(range(data_args.max_predict_samples))
         predict_dataset = predict_dataset.map(
-            preprocess_function,
+            preprocess_predict_function,
             batched=True,
             num_proc=data_args.preprocessing_num_workers,
             remove_columns=column_names,
@@ -543,7 +559,6 @@ def main():
 
     # Metric
     metric = load_metric("rouge")
-    import pdb
     def postprocess_text(preds, labels):
         preds = [pred.strip() for pred in preds]
         labels = [label.strip() for label in labels]
@@ -576,12 +591,12 @@ def main():
         decoded_preds, decoded_labels = postprocess_text(decoded_preds, decoded_labels)
 
         result = metric.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
-        print("ROUGE:{}".format(result))
+        logger.info("***********************\nROUGE METRICS :{}\n***********************\n".format(result))
         result = {key: value.mid.fmeasure * 100 for key, value in result.items()}
-
         prediction_lens = [numpy.count_nonzero(pred != tokenizer.pad_token_id) for pred in preds]
         result["gen_len"] = numpy.mean(prediction_lens)
         result = {k: round(v, 4) for k, v in result.items()}
+        result['predictions'] = decoded_preds
         return result
 
     trainer = SparseMLSeq2SeqTrainer(
@@ -634,62 +649,16 @@ def main():
     if training_args.do_predict:
         logger.info("*** Predict ***")
 
-        values = trainer.predict(
+        results = trainer.predict(
             predict_dataset,
             metric_key_prefix="predict",
             max_length=data_args.val_max_target_length,
             num_beams=data_args.num_beams,
         )
-        labels, predictions = values
-        print(labels)
-        print(prediction)
-        
-        labels = numpy.where(labels != -100, labels, tokenizer.pad_token_id)
-        decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
-        if isinstance(preds, tuple):
-            preds = preds[0]
-        tpreds = torch.from_numpy(preds)
-        _, words  = torch.topk(tpreds, 1, 2) #beam size 1
-        words = words.squeeze(-1)
-        preds = []
-        logger.info("Post Processing Predictions")
-        for i in range(words.shape[0]):
-            eos_index = numpy.argwhere(words[i]==1).squeeze()
-            if len(eos_index.shape) > 0 and len(eos_index) > 0:
-                eos_index = numpy.argwhere(words[i]==1).squeeze()[0]
-            else:
-                eos_index = data_args.val_max_target_length
-            preds.append(words[i][:int(eos_index) + 1])
-        decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
-
-        # Some simple post-processing
-        decoded_preds, decoded_labels = postprocess_text(decoded_preds, decoded_labels)
-
-        result = metric.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
-        print("ROUGE:{}".format(result))
-        result = {key: value.mid.fmeasure * 100 for key, value in result.items()}
-
-        prediction_lens = [numpy.count_nonzero(pred != tokenizer.pad_token_id) for pred in preds]
-        result["gen_len"] = numpy.mean(prediction_lens)
-        result = {k: round(v, 4) for k, v in result.items()}
-        metrics = predict_results.metrics
-        max_predict_samples = (
-            data_args.max_predict_samples if data_args.max_predict_samples is not None else len(predict_dataset)
-        )
-        metrics["predict_samples"] = min(max_predict_samples, len(predict_dataset))
-
-        trainer.log_metrics("predict", metrics)
-        trainer.save_metrics("predict", metrics)
-
-        if trainer.is_world_process_zero():
-            if training_args.predict_with_generate:
-                predictions = tokenizer.batch_decode(
-                    predict_results.predictions, skip_special_tokens=True, clean_up_tokenization_spaces=True
-                )
-                predictions = [pred.strip() for pred in predictions]
-                output_prediction_file = os.path.join(training_args.output_dir, "generated_predictions.txt")
-                with open(output_prediction_file, "w") as writer:
-                    writer.write("\n".join(predictions))
+        prediction_size = len(results[2]['predict_predictions'])
+        with open(os.path.join(training_args.output_dir, "predictions.txt"), "a") as writer:
+            for i in range(prediction_size):
+                writer.write("{}\n".format(json.dumps({"doc_id":predict_dataset[i]['doc_ids'], "prediction":results[2]['predict_predictions'][i]})))
 
     if training_args.push_to_hub:
         kwargs = {"finetuned_from": model_args.model_name_or_path, "tags": "summarization"}
