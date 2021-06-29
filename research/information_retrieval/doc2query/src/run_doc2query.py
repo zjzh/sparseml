@@ -30,14 +30,12 @@ This script will:
 - Export model to onnx.
 ##########
 Command help:
-usage: run_glue.py [-h] \
+usage: run_doc2query.py [-h] \
     [--teacher_model_name_or_path] \
-    [--student_model_name_or_path] \
-    [--task_name] \
+    [--model_name_or_path] \
     [--temperature] \
     [--distill_hardness] \
     [--dataset_name]  \
-    [--num_train_epochs] \
     [--do_train] \
     [--do_eval] \
     [--per_device_train_batch_size] \
@@ -48,25 +46,19 @@ usage: run_glue.py [-h] \
     [--cache_dir]\
     [--preprocessing_num_workers] \
     [--seed] \
-    [--nm_prune_config] \
-    [--do_onnx_export] \
+    [--recipe] \
     [--onnx_export_path] \
     [--layers_to_keep] \
 
-Train, prune, and evaluate a transformer base question answering model on squad. 
+Train, prune, and evaluate a T5 summarization model focused on query generation. 
     -h, --help            show this help message and exit
     --teacher_model_name_or_path    The name or path of model which will be used for distilation.
                                     Note, this model needs to be trained for QA task already.
-    --student_model_name_or_path    The path to the transformers model you wish to train
+    --model_name_or_path    The path to the transformers model you wish to train
                                     or the name of the pretrained language model you wish
                                     to use. ex: bert-base-uncased.
-    --task_name                     The name of the GLUE task which the model with train and evalute on. 
     --temperature                   Hyperparameter which controls model distilation 
     --distill_hardness              Hyperparameter which controls how much of the loss comes from teacher vs training labels
-    --dataset_name                  The name of which dataset you want to use to train or
-                                    your model. ex: squad for using SQuAD.
-    --num_train_epochs              Paramater to control how many training epochs you wish
-                                    your model to train.
     --do_train                      Boolean denoting if the model should be trained
                                     or not. Default is false.
     --do_eval                       Boolean denoting if the model should be evaluated
@@ -82,39 +74,15 @@ Train, prune, and evaluate a transformer base question answering model on squad.
                                     , tokenizers) are saved for fast loading. 
     --preprocessing_num_workers     The amount of cpu workers which are used to process datasets
     --seed                          Int which determines what random seed is for training/shuffling
-    --nm_prune_config               Path to the neural magic prune configuration file. examples can
+    --recipe               Path to the neural magic prune configuration file. examples can
                                     be found in prune_config_files but are customized for bert-base-uncased. 
-    --do_onnx_export                Boolean denoting if the model should be exported to onnx
     --onnx_export_path              Path where onnx model path will be exported. ex: onnx-export
     --layers_to_keep                Number of layers to keep from original model. Layers are dropped before training
     --max_seq_length                Int for the max sequence length to be parsed for glue tasks ex: 128 tokens.
 
 ##########
-Example command for training a 95% sparse BERT SQUAD model for 1 epoch without distilation on the Quora Duplicate Question Task:
-python examples/transformers/run_glue.py \
-    --teacher_model_name_or_path NONE
-    --student_model_name_or_path bert-base-uncased \
-    --task_name QQP
-    --dataset_name squad \
-    --num_train_epochs 1 \
-    --do_train \
-    --do_eval \
-    --per_device_train_batch_size 12 \
-    --per_device_eval_batch_size 12 \
-    --learning_rate 3e-5 \
-    --max_seq_length 128 \
-    --doc_stride 128 \
-    --output_dir 95sparsity1epoch/ \
-    --overwrite_output_dir \
-    --cache_dir cache \
-    --preprocessing_num_workers 8 \
-    --seed 42 \
-    --nm_prune_config prune_config_files/95sparsity1epoch.yaml \
-    --do_onnx_export \
-    --onnx_export_path 95sparsity1epoch/ \
-    --distill_hardness 1.0 \
-    --temperature 2.0 \
-    --layers_to_keep 12 \
+Example command for training a 90% sparse 
+python src/run_doc2query.py --model_name_or_path t5-base --do_train --do_eval --evaluation_strategy steps --eval_steps 50 --source_prefix "summarize: " --output_dir doc2query_baseline --overwrite_output_dir --per_device_train_batch_size=12 --per_device_eval_batch_size=16 --cache_dir cache/ --save_strategy epoch --seed 42 --recipe recipes/t5-base-24layers-prune0.md
 """
 import logging
 import os
@@ -164,8 +132,6 @@ from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version
 
 from sparseml_utils import SparseMLSeq2SeqTrainer, export_model
-
-logger = logging.getLogger(__name__)
 
 try:
     nltk.data.find("tokenizers/punkt")
@@ -600,7 +566,7 @@ def main():
         result = {k: round(v, 4) for k, v in result.items()}
         #result['predictions'] = decoded_preds
         return result
-
+    print(training_args)
     trainer = SparseMLSeq2SeqTrainer(
         data_args.recipe,
         teacher=teacher_model,
@@ -615,7 +581,7 @@ def main():
         data_collator=data_collator,
         compute_metrics=compute_metrics,
     )
-
+    print(training_args)
     # Training
     if training_args.do_train:
         checkpoint = None

@@ -16,7 +16,7 @@ limitations under the License.
 
 ---
 # General Variables
-num_epochs: &num_epochs 5
+num_epochs: &num_epochs 10
 
 # Modifiers
 training_modifiers:
