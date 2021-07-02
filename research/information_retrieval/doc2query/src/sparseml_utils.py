@@ -236,6 +236,7 @@ class SparseMLSeq2SeqTrainer(Seq2SeqTrainer):
 
         observed_num_examples = 0
         # Main evaluation loop
+        #with open(self.prediction_file, 'a') as w:
         for step, inputs in enumerate(dataloader):
             # Update the observed num examples
             observed_batch_size = find_batch_size(inputs)
@@ -244,7 +245,7 @@ class SparseMLSeq2SeqTrainer(Seq2SeqTrainer):
 
             # Prediction step
             loss, logits, labels = self.prediction_step(model, inputs, prediction_loss_only, ignore_keys=ignore_keys)
-
+            #pdb.set_trace()
             # Update containers on host
             if loss is not None:
                 losses = self._nested_gather(loss.repeat(batch_size))
