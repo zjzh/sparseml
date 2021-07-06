@@ -1,6 +1,10 @@
 import argparse
 import os
 import json
+import itertools
+import os
+
+import threading
 
 import transformers
 from filelock import FileLock
@@ -15,13 +19,27 @@ from transformers import (
     set_seed,
 )
 
-def load_qid2query(filename):
-    qid2query = {}
+def load_collection(filename):
+    collection = {}
     with open(filename, 'r') as f:
         for l in f:
             l = l.strip().split('\t')
-            qid2query[int(l[0])] = l[1]
-    return qid2query
+            try:
+                collection[int(l[0])] = l[1]
+            except:
+                print(l)
+    return collection
+
+def chunked(it, size):
+    it = iter(it)
+    while True:
+        p = tuple(itertools.islice(it, size))
+        if not p:
+            break
+        yield p
+
+def write_chunk(chunk, generated_answers,args):
+    return
 
 
 def main():
@@ -33,22 +51,16 @@ def main():
         help="The msmarco passage collection file",
     )
     parser.add_argument(
+        "--augmented_file",
+        default="data/collection_augmented.json",
+        type=str,
+        help="Name for expanded document"
+    )
+    parser.add_argument(
         "--model_name_or_path",
         type=str,
         default=None,
         help="Doc2Query predictions",
-    )
-    parser.add_argument(
-        "--augmented_collection_file",
-        type=str,
-        default="data/augmented_collection.jsonl",
-        help="The output_file for augmented doc 2 query index",
-    )
-    parser.add_argument(
-        "--beam_size",
-        type=int,
-        default=3,
-        help="number of queries to generate per passage",
     )
     parser.add_argument(
         "--max_length",
@@ -60,13 +72,41 @@ def main():
         '--no_cuda',
         action="store_true",
         help="Use this to not use cuda")
+    parser.add_argument(
+        '--batch_size',
+        type=int,
+        default=16,
+        help='batch_size for generation'
+    )
+    parser.add_argument(
+        '--top_k',
+        type=int,
+        default=10,
+        help='The number of highest probability vocabulary tokens to keep for top-k-filtering'
+    )
+    parser.add_argument(
+        '--num_beams',
+        type=int,
+        default=3,
+        help='Beam Size for beam search'
+    )
+    parser.add_argument(
+        "--num_return_sequences",
+        type=int,
+        default=3,
+        help="number of queries to generate per passage",
+    )
     args = parser.parse_args()
+
     print("Loading collection")
-    collection = load_qid2query(args.collection_file)
+    collection = load_collection(args.collection_file)
     print("Collection loaded")
     device='cuda'
     if args.no_cuda:
         device='cpu'
+
+    if os.path.exists(args.augmented_file):
+        os.remove(args.augmented_file) #remove predictions if exists
 
     print("Loading model")
     config = AutoConfig.from_pretrained(args.model_name_or_path,)
@@ -75,31 +115,35 @@ def main():
     model.to(device)
     model.resize_token_embeddings(len(tokenizer))
     print("Model Loaded")
+
     print("Augmenting passages")
-    augmentations = 0
-    import pdb
-    #TODO Introduce batching at inference time as right now runs 1 by 1
-    with open(args.augmented_collection_file, 'w') as w:
-        for doc_id in collection:
-            pdb.set_trace()
-            if augmentations % 5000 == 0:
-                print("{} passages augmented".format(augmentations))
-            document_text = collection[doc_id]
-            input_ids = tokenizer.encode(document_text, return_tensors='pt').to(device)
+    batches = 0
+    with open(args.augmented_file, 'a') as w:
+        for chunk in chunked(collection.items(),args.batch_size):
+            d_chunk = dict(chunk)
+            collection_keys = list(d_chunk.keys())
+            if batches % 100 == 0:
+                print("{} passage processed".format(batches*args.batch_size))
+            input_ids = tokenizer(list(dict(chunk).values()), return_tensors='pt', padding=True, truncation=True)['input_ids'].to(device)
             outputs = model.generate(
                 input_ids=input_ids,
                 max_length=args.max_length,
                 do_sample=True,
-                top_k=10,
-                num_return_sequences=args.beam_size)
-            query_augment = ''
-            for i in range(args.beam_size):
-                query_augment += ' '
-                query_augment += tokenizer.decode(outputs[i], skip_special_tokens=True)
-            output_dict = {'id': doc_id, 'contents': document_text + query_augment}
-            w.write(json.dumps(output_dict) + '\n')
-            augmentations += 1
-        
+                top_k=args.top_k,
+                num_beams=args.num_beams,
+                num_return_sequences=args.num_return_sequences)
+            #write_thread = threading.Thread(target=function_that_downloads, name="writer", args=some_args)
+            #write_thread.start()
+            for i in range(len(collection_keys)):
+                query_augment = ''   
+                doc_id = collection_keys[i]
+                for j in range(args.num_return_sequences):
+                    query_augment += ' '
+                    query_augment += tokenizer.decode(outputs[i+j], skip_special_tokens=True)
+                output_dict = {'id': doc_id, 'original_input': collection[doc_id], 'input': collection[doc_id] + query_augment}
+                w.write(json.dumps(output_dict) + '\n')  
+            batches += 1
+     
 if __name__ == "__main__":
     main()
 
