@@ -129,38 +129,15 @@ class SparseMLSeq2SeqTrainer(Seq2SeqTrainer):
         else:
             input_device = inputs["input_ids"].device
             self.teacher = self.teacher.to(input_device)
-            start_logits_student = outputs["start_logits"]
-            end_logits_student = outputs["end_logits"]
-            start_logits_label = inputs["start_positions"]
-            end_logits_label = inputs["end_positions"]
+            logits_student = outputs["logits"]
+            logits_label = inputs["labels"]
             with torch.no_grad():
-                teacher_output = self.teacher(
-                    input_ids=inputs["input_ids"],
-                    token_type_ids=inputs["token_type_ids"],
-                    attention_mask=inputs["attention_mask"],
-                )
-            start_logits_teacher = teacher_output["start_logits"]
-            end_logits_teacher = teacher_output["end_logits"]
-            loss_start = (
-                F.kl_div(
-                    input=F.log_softmax(start_logits_student / self.distill_temperature, dim=-1),
-                    target=F.softmax(start_logits_teacher / self.distill_temperature, dim=-1),
-                    reduction="batchmean",
-                )
-                * (self.distill_temperature ** 2)
+                teacher_output = self.teacher(**inputs)
+            logits_teacher = teacher_output["logits"]
+            teacher_loss = (
+                F.kl_div(input=F.log_softmax(logits_student / self.distill_temperature, dim=-1),target=F.softmax(logits_teacher / self.distill_temperature, dim=-1),reduction="batchmean",) * (self.distill_temperature ** 2)
             )
-            loss_end = (
-                F.kl_div(
-                    input=F.log_softmax(end_logits_student / self.distill_temperature, dim=-1),
-                    target=F.softmax(end_logits_teacher / self.distill_temperature, dim=-1),
-                    reduction="batchmean",
-                )
-                * (self.distill_temperature ** 2)
-            )
-            teacher_loss = (loss_start + loss_end) / 2.0
-            loss_start = self.criterion(start_logits_student, start_logits_label)
-            loss_end = self.criterion(end_logits_student, end_logits_label)
-            label_loss = (loss_start + loss_end) / 2.0
+            label_loss = outputs["loss"]
             loss = ((1 - self.distill_hardness) * label_loss) + (self.distill_hardness * teacher_loss)
         return (loss, outputs) if return_outputs else loss
 

@@ -77,9 +77,11 @@ def main():
     print("Model Loaded")
     print("Augmenting passages")
     augmentations = 0
+    import pdb
     #TODO Introduce batching at inference time as right now runs 1 by 1
     with open(args.augmented_collection_file, 'w') as w:
         for doc_id in collection:
+            pdb.set_trace()
             if augmentations % 5000 == 0:
                 print("{} passages augmented".format(augmentations))
             document_text = collection[doc_id]

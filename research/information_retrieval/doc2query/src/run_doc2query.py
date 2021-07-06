@@ -161,7 +161,7 @@ class ModelArguments:
         default=2.0, metadata={"help": "Temperature applied to teacher softmax for distillation."}
     )
     distill_hardness: Optional[float] = field(
-        default=1.0, metadata={"help": "Proportion of loss coming from teacher model."}
+        default=0.5, metadata={"help": "Proportion of loss coming from teacher model."}
     )
     config_name: Optional[str] = field(
         default=None, metadata={"help": "Pretrained config name or path if not the same as model_name"}
@@ -219,7 +219,7 @@ class DataTrainingArguments:
         },
     )
     test_file: Optional[str] = field(
-        default='data/doc_query_to_predict.json',
+        default='data/doc_query_to_predict_small.json',
         metadata={
             "help": "An optional input test data file to evaluate the metrics (rouge) on " "(a jsonlines or csv file)."
         },
@@ -491,7 +491,7 @@ def main():
         model_inputs = tokenizer(inputs, max_length=data_args.max_source_length, padding=padding, truncation=True)
         model_inputs["doc_ids"] =  examples['target']
         with tokenizer.as_target_tokenizer():
-            labels = tokenizer(targets, max_length=max_target_length, padding=padding, truncation=True)
+            labels = tokenizer(targets, max_length=data_args.val_max_target_length, padding=padding, truncation=True)
         if padding == "max_length" and data_args.ignore_pad_token_for_loss:
             labels["input_ids"] = [
                 [(l if l != tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"]
@@ -566,7 +566,7 @@ def main():
         result = {k: round(v, 4) for k, v in result.items()}
         #result['predictions'] = decoded_preds
         return result
-    print(training_args)
+
     trainer = SparseMLSeq2SeqTrainer(
         data_args.recipe,
         teacher=teacher_model,
@@ -581,8 +581,7 @@ def main():
         data_collator=data_collator,
         compute_metrics=compute_metrics,
     )
-    print(training_args)
-    # Training
+
     if training_args.do_train:
         checkpoint = None
         if training_args.resume_from_checkpoint is not None:
