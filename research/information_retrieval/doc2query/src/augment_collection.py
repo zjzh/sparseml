@@ -75,13 +75,13 @@ def main():
     parser.add_argument(
         '--batch_size',
         type=int,
-        default=16,
+        default=12,
         help='batch_size for generation'
     )
     parser.add_argument(
         '--top_k',
         type=int,
-        default=10,
+        default=50,
         help='The number of highest probability vocabulary tokens to keep for top-k-filtering'
     )
     parser.add_argument(
@@ -132,15 +132,14 @@ def main():
                 top_k=args.top_k,
                 num_beams=args.num_beams,
                 num_return_sequences=args.num_return_sequences)
-            #write_thread = threading.Thread(target=function_that_downloads, name="writer", args=some_args)
-            #write_thread.start()
+
             for i in range(len(collection_keys)):
                 query_augment = ''   
                 doc_id = collection_keys[i]
                 for j in range(args.num_return_sequences):
                     query_augment += ' '
                     query_augment += tokenizer.decode(outputs[i+j], skip_special_tokens=True)
-                output_dict = {'id': doc_id, 'original_input': collection[doc_id], 'input': collection[doc_id] + query_augment}
+                output_dict = {'id': doc_id, 'original_input': collection[doc_id], 'query_agument': query_augment, 'input': collection[doc_id] + query_augment}
                 w.write(json.dumps(output_dict) + '\n')  
             batches += 1
      

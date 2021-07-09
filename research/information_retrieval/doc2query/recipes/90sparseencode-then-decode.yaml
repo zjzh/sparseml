@@ -2,11 +2,11 @@ version: 1.1.0
 
 modifiers:
     - !EpochRangeModifier
-        end_epoch: 12
+        end_epoch: 10
         start_epoch: 0.0
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -14,11 +14,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.0.layer.0.SelfAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -26,11 +26,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.0.layer.0.SelfAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -38,11 +38,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.0.layer.0.SelfAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -50,11 +50,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.0.layer.0.SelfAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -62,11 +62,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.0.layer.1.EncDecAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -74,11 +74,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.0.layer.1.EncDecAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -86,11 +86,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.0.layer.1.EncDecAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -98,11 +98,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.0.layer.1.EncDecAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -110,11 +110,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.0.layer.2.DenseReluDense.wi.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
         
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -122,11 +122,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.0.layer.2.DenseReluDense.wo.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -134,11 +134,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.1.layer.0.SelfAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -146,11 +146,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.1.layer.0.SelfAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -158,11 +158,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.1.layer.0.SelfAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -170,11 +170,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.1.layer.0.SelfAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -182,11 +182,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.1.layer.1.EncDecAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -194,11 +194,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.1.layer.1.EncDecAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -206,11 +206,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.1.layer.1.EncDecAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -218,11 +218,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.1.layer.1.EncDecAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -230,11 +230,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.1.layer.2.DenseReluDense.wi.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
         
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -242,11 +242,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.1.layer.2.DenseReluDense.wo.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -254,11 +254,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.2.layer.0.SelfAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -266,11 +266,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.2.layer.0.SelfAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -278,11 +278,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.2.layer.0.SelfAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -290,11 +290,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.2.layer.0.SelfAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -302,11 +302,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.2.layer.1.EncDecAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -314,11 +314,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.2.layer.1.EncDecAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -326,11 +326,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.2.layer.1.EncDecAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -338,11 +338,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.2.layer.1.EncDecAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -350,11 +350,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.2.layer.2.DenseReluDense.wi.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
         
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -362,11 +362,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.2.layer.2.DenseReluDense.wo.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -374,11 +374,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.3.layer.0.SelfAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -386,11 +386,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.3.layer.0.SelfAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -398,11 +398,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.3.layer.0.SelfAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -410,11 +410,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.3.layer.0.SelfAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -422,11 +422,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.3.layer.1.EncDecAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -434,11 +434,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.3.layer.1.EncDecAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -446,11 +446,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.3.layer.1.EncDecAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -458,11 +458,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.3.layer.1.EncDecAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -470,11 +470,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.3.layer.2.DenseReluDense.wi.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
         
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -482,11 +482,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.3.layer.2.DenseReluDense.wo.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
         
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -494,11 +494,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.4.layer.0.SelfAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -506,11 +506,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.4.layer.0.SelfAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -518,11 +518,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.4.layer.0.SelfAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -530,11 +530,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.4.layer.0.SelfAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -542,11 +542,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.4.layer.1.EncDecAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -554,11 +554,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.4.layer.1.EncDecAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -566,11 +566,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.4.layer.1.EncDecAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -578,11 +578,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.4.layer.1.EncDecAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -590,11 +590,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.4.layer.2.DenseReluDense.wi.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
         
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -602,11 +602,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.4.layer.2.DenseReluDense.wo.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -614,11 +614,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.5.layer.0.SelfAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -626,11 +626,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.5.layer.0.SelfAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -638,11 +638,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.5.layer.0.SelfAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -650,11 +650,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.5.layer.0.SelfAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -662,11 +662,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.5.layer.1.EncDecAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -674,11 +674,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.5.layer.1.EncDecAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -686,11 +686,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.5.layer.1.EncDecAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -698,11 +698,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.5.layer.1.EncDecAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -710,11 +710,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.5.layer.2.DenseReluDense.wi.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
         
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -722,11 +722,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.5.layer.2.DenseReluDense.wo.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -734,11 +734,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.6.layer.0.SelfAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -746,11 +746,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.6.layer.0.SelfAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -758,11 +758,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.6.layer.0.SelfAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -770,11 +770,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.6.layer.0.SelfAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -782,11 +782,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.6.layer.1.EncDecAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -794,11 +794,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.6.layer.1.EncDecAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -806,11 +806,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.6.layer.1.EncDecAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -818,11 +818,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.6.layer.1.EncDecAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -830,11 +830,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.6.layer.2.DenseReluDense.wi.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
         
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -842,11 +842,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.6.layer.2.DenseReluDense.wo.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -854,11 +854,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.7.layer.0.SelfAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -866,11 +866,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.7.layer.0.SelfAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -878,11 +878,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.7.layer.0.SelfAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -890,11 +890,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.7.layer.0.SelfAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -902,11 +902,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.7.layer.1.EncDecAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -914,11 +914,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.7.layer.1.EncDecAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -926,11 +926,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.7.layer.1.EncDecAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -938,11 +938,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.7.layer.1.EncDecAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -950,11 +950,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.7.layer.2.DenseReluDense.wi.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
         
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -962,11 +962,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.7.layer.2.DenseReluDense.wo.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -974,11 +974,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.8.layer.0.SelfAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -986,11 +986,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.8.layer.0.SelfAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -998,11 +998,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.8.layer.0.SelfAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1010,11 +1010,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.8.layer.0.SelfAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1022,11 +1022,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.8.layer.1.EncDecAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1034,11 +1034,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.8.layer.1.EncDecAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1046,11 +1046,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.8.layer.1.EncDecAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1058,11 +1058,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.8.layer.1.EncDecAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1070,11 +1070,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.8.layer.2.DenseReluDense.wi.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
         
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1082,11 +1082,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.8.layer.2.DenseReluDense.wo.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1094,11 +1094,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.9.layer.0.SelfAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1106,11 +1106,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.9.layer.0.SelfAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1118,11 +1118,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.9.layer.0.SelfAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1130,11 +1130,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.9.layer.0.SelfAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1142,11 +1142,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.9.layer.1.EncDecAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1154,11 +1154,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.9.layer.1.EncDecAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1166,11 +1166,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.9.layer.1.EncDecAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1178,11 +1178,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.9.layer.1.EncDecAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1190,11 +1190,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.9.layer.2.DenseReluDense.wi.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
         
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1202,11 +1202,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.9.layer.2.DenseReluDense.wo.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1214,11 +1214,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.10.layer.0.SelfAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1226,11 +1226,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.10.layer.0.SelfAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1238,11 +1238,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.10.layer.0.SelfAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1250,11 +1250,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.10.layer.0.SelfAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1262,11 +1262,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.10.layer.1.EncDecAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1274,11 +1274,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.10.layer.1.EncDecAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1286,11 +1286,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.10.layer.1.EncDecAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1298,11 +1298,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.10.layer.1.EncDecAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1310,11 +1310,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.10.layer.2.DenseReluDense.wi.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
         
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1322,11 +1322,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.10.layer.2.DenseReluDense.wo.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1334,11 +1334,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.11.layer.0.SelfAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1346,11 +1346,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.11.layer.0.SelfAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1358,11 +1358,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.11.layer.0.SelfAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1370,11 +1370,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.11.layer.0.SelfAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
     
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1382,11 +1382,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.11.layer.1.EncDecAttention.q.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1394,11 +1394,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.11.layer.1.EncDecAttention.k.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1406,11 +1406,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.11.layer.1.EncDecAttention.v.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1418,11 +1418,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.11.layer.1.EncDecAttention.o.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
 
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1430,11 +1430,11 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.11.layer.2.DenseReluDense.wi.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
         
     - !GMPruningModifier
-        end_epoch: 10
+        end_epoch: 8
         final_sparsity: 0.90
         init_sparsity: 0.00
         inter_func: cubic
@@ -1442,10 +1442,8 @@ modifiers:
         log_types: __ALL__
         mask_type: unstructured
         params: ['decoder.block.11.layer.2.DenseReluDense.wo.weight']
-        start_epoch: 7
+        start_epoch: 5
         update_frequency: 0.01
-
-
 
     - !GMPruningModifier
         end_epoch: 4

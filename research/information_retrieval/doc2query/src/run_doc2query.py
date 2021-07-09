@@ -218,12 +218,6 @@ class DataTrainingArguments:
             "(a jsonlines or csv file)."
         },
     )
-    test_file: Optional[str] = field(
-        default='data/doc_query_to_predict_small.json',
-        metadata={
-            "help": "An optional input test data file to evaluate the metrics (rouge) on " "(a jsonlines or csv file)."
-        },
-    )
     overwrite_cache: bool = field(
         default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
     )
@@ -372,9 +366,6 @@ def main():
         if data_args.validation_file is not None and training_args.do_eval:
             data_files["validation"] = data_args.validation_file
             extension = data_args.validation_file.split(".")[-1]
-        if data_args.test_file is not None and training_args.do_predict:
-            data_files["test"] = data_args.test_file
-            extension = data_args.test_file.split(".")[-1]
         datasets = load_dataset(extension, data_files=data_files, cache_dir=model_args.cache_dir)
 
     config = AutoConfig.from_pretrained(
@@ -425,8 +416,6 @@ def main():
         column_names = datasets["train"].column_names
     elif training_args.do_eval:
         column_names = datasets["validation"].column_names
-    elif training_args.do_predict:
-        column_names = datasets["test"].column_names
     else:
         logger.info("There is nothing to do. Please pass `do_train`, `do_eval` and/or `do_predict`.")
         return
@@ -478,38 +467,6 @@ def main():
             eval_dataset = eval_dataset.select(range(data_args.max_eval_samples))
         eval_dataset = eval_dataset.map(
             preprocess_function,
-            batched=True,
-            num_proc=data_args.preprocessing_num_workers,
-            remove_columns=column_names,
-            load_from_cache_file=not data_args.overwrite_cache,
-        )
-
-    def preprocess_predict_function(examples):
-        inputs = examples['input']
-        targets = examples['target']
-        inputs = [prefix + inp for inp in inputs]
-        model_inputs = tokenizer(inputs, max_length=data_args.max_source_length, padding=padding, truncation=True)
-        model_inputs["doc_ids"] =  examples['target']
-        with tokenizer.as_target_tokenizer():
-            labels = tokenizer(targets, max_length=data_args.val_max_target_length, padding=padding, truncation=True)
-        if padding == "max_length" and data_args.ignore_pad_token_for_loss:
-            labels["input_ids"] = [
-                [(l if l != tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"]
-            ]
-        model_inputs["labels"] = labels["input_ids"]
-        return model_inputs
-
-    prediction_file = None
-    if training_args.do_predict:
-        prediction_file = os.path.join(training_args.output_dir, "predictions.txt")
-        max_target_length = data_args.val_max_target_length
-        if "test" not in datasets:
-            raise ValueError("--do_predict requires a test dataset")
-        predict_dataset = datasets["test"]
-        if data_args.max_predict_samples is not None:
-            predict_dataset = predict_dataset.select(range(data_args.max_predict_samples))
-        predict_dataset = predict_dataset.map(
-            preprocess_predict_function,
             batched=True,
             num_proc=data_args.preprocessing_num_workers,
             remove_columns=column_names,
@@ -614,20 +571,6 @@ def main():
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
 
-    if training_args.do_predict:
-        logger.info("*** Predict ***")
-
-        results = trainer.predict(
-            predict_dataset,
-            metric_key_prefix="predict",
-            max_length=data_args.val_max_target_length,
-            num_beams=data_args.num_beams,
-        )
-        prediction_size = len(results[2]['predict_predictions'])
-        with open(os.path.join(training_args.output_dir, "predictions.txt"), "a") as writer:
-            for i in range(prediction_size):
-                writer.write("{}\n".format(json.dumps({"doc_id":predict_dataset[i]['doc_ids'], "prediction":results[2]['predict_predictions'][i]})))
-
     if training_args.push_to_hub:
         kwargs = {"finetuned_from": model_args.model_name_or_path, "tags": "summarization"}
         if data_args.dataset_name is not None:
@@ -647,7 +590,6 @@ def main():
     return results
 
 def _mp_fn(index):
-    # For xla_spawn (TPUs)
     main()
 
 if __name__ == "__main__":
