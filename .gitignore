@@ -8,6 +8,10 @@ examples/transformers/cache/
 examples/transformers/output/
 examples/transformers/runs/
 examples/transformers/wandb/
+research/information_retrieval/doc2query/cache/
+research/information_retrieval/doc2query/models/
+research/information_retrieval/doc2query/runs/
+research/information_retrieval/doc2query/wandb/
 /imagenet-schedule-training/
 /sparseml/models/pretrained/
 notebooks/logs/*
