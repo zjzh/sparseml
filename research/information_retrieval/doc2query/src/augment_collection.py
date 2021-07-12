@@ -65,7 +65,7 @@ def main():
     parser.add_argument(
         "--max_length",
         type=int,
-        default=32,
+        default=24,
         help="length of document queries",
     )
     parser.add_argument(
@@ -87,7 +87,7 @@ def main():
     parser.add_argument(
         '--num_beams',
         type=int,
-        default=3,
+        default=5,
         help='Beam Size for beam search'
     )
     parser.add_argument(
