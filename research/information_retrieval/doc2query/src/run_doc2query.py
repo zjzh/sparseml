@@ -527,7 +527,6 @@ def main():
     trainer = SparseMLSeq2SeqTrainer(
         data_args.recipe,
         teacher=teacher_model,
-        prediction_file=prediction_file,
         distill_hardness=model_args.distill_hardness,
         distill_temperature=model_args.distill_temperature,
         model=model,

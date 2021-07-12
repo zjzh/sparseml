@@ -61,8 +61,9 @@ python src/run_doc2query.py --model_name_or_path t5-base --do_train --do_eval --
 python src/run_doc2query.py --model_name_or_path t5-base --do_train --do_eval --evaluation_strategy epoch --source_prefix "summarize: " --output_dir 90sparse-distill --distill_teacher doc2query_baseline/  --overwrite_output_dir --per_device_train_batch_size=12 --per_device_eval_batch_size=4 --cache_dir cache/ --save_strategy epoch --seed 42 --recipe recipes/90sparseencode-then-decode.yaml --distill_hardness 0.5  --num_train_epochs 10 --eval_accumulation_steps 10
 ```
 
-#### Prediction and Index Generation (Sparse)
-Predition happens best when the index file is sharded. Started 4:04pm
+#### Prediction and Index Generation
+Predition happens best when the index file is sharded. Each GPU process produces can augment about 1000 passages a minute which means with one server with 4 V100 GPUs augmented collection creation will take about 36 hours. 
+as a re Started 4:04pm
 ```sh
 mkdir data/base_doc2query_collection
 cp data/collection.tsv data/base_doc2query_collection
@@ -70,4 +71,7 @@ split -n 8 data/collection.tsv data/base_doc2query_collection/
 CUDA_VISIBLE_DEVICES=0 python src/augment_collection.py --collection_file data/base_doc2query_collection/xaa --model_name_or_path models/doc2query_baseline/ --augmented_file data/base_doc2query_collection/xaa.json
 ```
 
-### Prediction and Index Generation (Dense)
+### Prediction and Index Generation with ONNX Run Time
+TBD
+### Prediction and Index Generation with DeepSparse
+TBD
