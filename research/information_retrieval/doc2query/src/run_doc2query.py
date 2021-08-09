@@ -457,7 +457,6 @@ def main():
             remove_columns=column_names,
             load_from_cache_file=not data_args.overwrite_cache,
         )
-
     if training_args.do_eval:
         max_target_length = data_args.val_max_target_length
         if "validation" not in datasets:

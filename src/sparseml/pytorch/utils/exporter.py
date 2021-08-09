@@ -15,11 +15,12 @@
 """
 Export PyTorch models to the local device
 """
-
+import collections
 import logging
 import os
+import warnings
 from copy import deepcopy
-from typing import Any, Callable, Iterable, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
 import numpy
 import onnx
@@ -151,6 +152,23 @@ class ModuleExporter(object):
             sample_originals=sample_originals,
         )
 
+    @classmethod
+    def get_output_names(cls, out: Any):
+        """
+        Get name of output tensors
+
+        :param out: outputs of the model
+        :return: list of names
+        """
+        output_names = None
+        if isinstance(out, Tensor):
+            output_names = ["output"]
+        elif isinstance(out, Iterable):
+            output_names = [
+                "output_{}".format(index) for index, _ in enumerate(iter(out))
+            ]
+        return output_names
+
     def export_onnx(
         self,
         sample_batch: Any,
@@ -158,6 +176,7 @@ class ModuleExporter(object):
         opset: int = DEFAULT_ONNX_OPSET,
         disable_bn_fusing: bool = True,
         convert_qat: bool = False,
+        **export_kwargs,
     ):
         """
         Export an onnx file for the current module and for a sample batch.
@@ -179,7 +198,24 @@ class ModuleExporter(object):
             the module being exported, the resulting QAT ONNX model will be converted
             to a fully quantized ONNX model using `quantize_torch_qat_export`. Default
             is False.
+        :param export_kwargs: kwargs to be passed as is to the torch.onnx.export api
+            call. Useful to pass in dyanmic_axes, input_names, output_names, etc.
+            See more on the torch.onnx.export api spec in the PyTorch docs:
+            https://pytorch.org/docs/stable/onnx.html
         """
+        if not export_kwargs:
+            export_kwargs = {}
+
+        if isinstance(sample_batch, Dict) and not isinstance(
+            sample_batch, collections.OrderedDict
+        ):
+            warnings.warn(
+                "Sample inputs passed into the ONNX exporter should be in "
+                "the same order defined in the model forward function. "
+                "Consider using OrderedDict for this purpose.",
+                UserWarning,
+            )
+
         sample_batch = tensors_to_device(sample_batch, "cpu")
         onnx_path = os.path.join(self._output_dir, name)
         create_parent_dirs(onnx_path)
@@ -189,23 +225,26 @@ class ModuleExporter(object):
                 sample_batch, self._module, check_feat_lab_inp=False
             )
 
-        input_names = None
-        if isinstance(sample_batch, Tensor):
-            input_names = ["input"]
-        elif isinstance(sample_batch, Iterable):
-            input_names = [
-                "input_{}".format(index) for index, _ in enumerate(iter(sample_batch))
-            ]
-            if isinstance(sample_batch, List):
-                sample_batch = tuple(sample_batch)  # torch.onnx.export requires tuple
+        if "input_names" not in export_kwargs:
+            if isinstance(sample_batch, Tensor):
+                export_kwargs["input_names"] = ["input"]
+            elif isinstance(sample_batch, Dict):
+                export_kwargs["input_names"] = list(sample_batch.keys())
+                sample_batch = tuple(
+                    [sample_batch[f] for f in export_kwargs["input_names"]]
+                )
+            elif isinstance(sample_batch, Iterable):
+                export_kwargs["input_names"] = [
+                    "input_{}".format(index)
+                    for index, _ in enumerate(iter(sample_batch))
+                ]
+                if isinstance(sample_batch, List):
+                    sample_batch = tuple(
+                        sample_batch
+                    )  # torch.onnx.export requires tuple
 
-        output_names = None
-        if isinstance(out, Tensor):
-            output_names = ["output"]
-        elif isinstance(out, Iterable):
-            output_names = [
-                "output_{}".format(index) for index, _ in enumerate(iter(out))
-            ]
+        if "output_names" not in export_kwargs:
+            export_kwargs["output_names"] = self.get_output_names(out)
 
         # disable active quantization observers because they cannot be exported
         disabled_observers = []
@@ -234,11 +273,10 @@ class ModuleExporter(object):
             export_module,
             sample_batch,
             onnx_path,
-            input_names=input_names,
-            output_names=output_names,
             strip_doc_string=True,
             verbose=False,
             opset_version=opset,
+            **export_kwargs,
         )
 
         # re-enable disabled quantization observers
