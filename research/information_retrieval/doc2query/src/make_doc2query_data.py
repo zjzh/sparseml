@@ -1,11 +1,11 @@
 # Copyright (c) 2021 - present / Neuralmagic, Inc. All Rights Reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -13,23 +13,27 @@
 # limitations under the License.
 
 import argparse
-import os
 import json
+import os
+
+
 def load_qid2query(filename):
     qid2query = {}
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         for l in f:
-            l = l.strip().split('\t')
+            l = l.strip().split("\t")
             qid2query[int(l[0])] = l[1]
     return qid2query
 
+
 def load_qrels(filename, collection, qid2query):
     qrels = {}
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         for l in f:
-            l = l.strip().split('\t')
+            l = l.strip().split("\t")
             qrels[qid2query[int(l[0])]] = collection[int(l[2])]
     return qrels
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -68,12 +72,16 @@ def main():
     qid2query = load_qid2query(args.query_file)
     train_qrels = load_qrels(args.train_qrel_file, collection, qid2query)
     dev_qrels = load_qrels(args.dev_qrel_file, collection, qid2query)
-    with open(args.output_file_prefix+"train.json",'w') as w:  
+    with open(args.output_file_prefix + "train.json", "w") as w:
         for qrel in train_qrels:
-            w.write("{}\n".format(json.dumps({"input":train_qrels[qrel], "target":qrel})))
-    with open(args.output_file_prefix+"dev.json",'w') as w:    
+            w.write(
+                "{}\n".format(json.dumps({"input": train_qrels[qrel], "target": qrel}))
+            )
+    with open(args.output_file_prefix + "dev.json", "w") as w:
         for qrel in dev_qrels:
-            w.write("{}\n".format(json.dumps({"input":dev_qrels[qrel], "target":qrel})))
+            w.write(
+                "{}\n".format(json.dumps({"input": dev_qrels[qrel], "target": qrel}))
+            )
 
 
 if __name__ == "__main__":

@@ -30,11 +30,11 @@ python research/information_retrieval/run_ranker.py \
     
 """
 
-    context_tokenizer = DPRContextEncoderTokenizer.from_pretrained(
-        'facebook/dpr-ctx_encoder-single-nq-base')
-    context_model = DPRContextEncoder.from_pretrained(
-        'facebook/dpr-ctx_encoder-single-nq-base', return_dict=True)
-    question_tokenizer = DPRQuestionEncoderTokenizer.from_pretrained(
-        'facebook/dpr-question_encoder-single-nq-base')
-    question_model = DPRQuestionEncoder.from_pretrained(
-        'facebook/dpr-question_encoder-single-nq-base', return_dict=True)
+context_tokenizer = DPRContextEncoderTokenizer.from_pretrained(
+    'facebook/dpr-ctx_encoder-single-nq-base')
+context_model = DPRContextEncoder.from_pretrained(
+    'facebook/dpr-ctx_encoder-single-nq-base', return_dict=True)
+question_tokenizer = DPRQuestionEncoderTokenizer.from_pretrained(
+    'facebook/dpr-question_encoder-single-nq-base')
+question_model = DPRQuestionEncoder.from_pretrained(
+    'facebook/dpr-question_encoder-single-nq-base', return_dict=True)

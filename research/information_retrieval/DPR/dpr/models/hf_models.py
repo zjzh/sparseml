@@ -6,13 +6,13 @@
 # LICENSE file in the root directory of this source tree.
 
 # Copyright (c) 2021 - present / Neuralmagic, Inc. All Rights Reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,14 +29,16 @@ from typing import Tuple
 import torch
 from torch import Tensor as T
 from torch import nn
+
+from dpr.models.biencoder import BiEncoder
+from dpr.utils.data_utils import Tensorizer
 from transformers.modeling_bert import BertConfig, BertModel
 from transformers.optimization import AdamW
 from transformers.tokenization_bert import BertTokenizer
 from transformers.tokenization_roberta import RobertaTokenizer
 
-from dpr.models.biencoder import BiEncoder
-from dpr.utils.data_utils import Tensorizer
 from .reader import Reader
+
 
 logger = logging.getLogger(__name__)
 
@@ -48,14 +50,14 @@ def get_bert_biencoder_components(cfg, inference_only: bool = False, **kwargs):
         projection_dim=cfg.encoder.projection_dim,
         dropout=dropout,
         pretrained=cfg.encoder.pretrained,
-        **kwargs
+        **kwargs,
     )
     ctx_encoder = HFBertEncoder.init_encoder(
         cfg.encoder.pretrained_model_cfg,
         projection_dim=cfg.encoder.projection_dim,
         dropout=dropout,
         pretrained=cfg.encoder.pretrained,
-        **kwargs
+        **kwargs,
     )
 
     fix_ctx_encoder = cfg.fix_ctx_encoder if hasattr(cfg, "fix_ctx_encoder") else False
@@ -86,7 +88,7 @@ def get_bert_reader_components(cfg, inference_only: bool = False, **kwargs):
         projection_dim=cfg.encoder.projection_dim,
         dropout=dropout,
         pretrained=cfg.encoder.pretrained,
-        **kwargs
+        **kwargs,
     )
 
     hidden_size = encoder.config.hidden_size
@@ -211,7 +213,7 @@ class HFBertEncoder(BertModel):
         projection_dim: int = 0,
         dropout: float = 0.1,
         pretrained: bool = True,
-        **kwargs
+        **kwargs,
     ) -> BertModel:
         cfg = BertConfig.from_pretrained(cfg_name if cfg_name else "bert-base-uncased")
         if dropout != 0:

@@ -1,11 +1,11 @@
 # Copyright (c) 2021 - present / Neuralmagic, Inc. All Rights Reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import argparse
-import os
 import json
+import os
 
 import transformers
 from filelock import FileLock
@@ -29,11 +29,12 @@ from transformers import (
     set_seed,
 )
 
+
 def load_qid2query(filename):
     qid2query = {}
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         for l in f:
-            l = l.strip().split('\t')
+            l = l.strip().split("\t")
             qid2query[int(l[0])] = l[1]
     return qid2query
 
@@ -71,47 +72,51 @@ def main():
         help="length of document queries",
     )
     parser.add_argument(
-        '--no_cuda',
-        action="store_true",
-        help="Use this to not use cuda")
+        "--no_cuda", action="store_true", help="Use this to not use cuda"
+    )
     args = parser.parse_args()
     print("Loading collection")
     collection = load_qid2query(args.collection_file)
     print("Collection loaded")
-    device='cuda'
+    device = "cuda"
     if args.no_cuda:
-        device='cpu'
+        device = "cpu"
 
     print("Loading model")
-    config = AutoConfig.from_pretrained(args.model_name_or_path,)
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path,)
+    config = AutoConfig.from_pretrained(
+        args.model_name_or_path,
+    )
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.model_name_or_path,
+    )
     model = AutoModelForSeq2SeqLM.from_pretrained(args.model_name_or_path)
     model.to(device)
     model.resize_token_embeddings(len(tokenizer))
     print("Model Loaded")
     print("Augmenting passages")
     augmentations = 0
-    #TODO Introduce batching at inference time as right now runs 1 by 1
-    with open(args.augmented_collection_file, 'w') as w:
+    # TODO Introduce batching at inference time as right now runs 1 by 1
+    with open(args.augmented_collection_file, "w") as w:
         for doc_id in collection:
             if augmentations % 5000 == 0:
                 print("{} passages augmented".format(augmentations))
             document_text = collection[doc_id]
-            input_ids = tokenizer.encode(document_text, return_tensors='pt').to(device)
+            input_ids = tokenizer.encode(document_text, return_tensors="pt").to(device)
             outputs = model.generate(
                 input_ids=input_ids,
                 max_length=args.max_length,
                 do_sample=True,
                 top_k=10,
-                num_return_sequences=args.beam_size)
-            query_augment = ''
+                num_return_sequences=args.beam_size,
+            )
+            query_augment = ""
             for i in range(args.beam_size):
-                query_augment += ' '
+                query_augment += " "
                 query_augment += tokenizer.decode(outputs[i], skip_special_tokens=True)
-            output_dict = {'id': doc_id, 'contents': document_text + query_augment}
-            w.write(json.dumps(output_dict) + '\n')
+            output_dict = {"id": doc_id, "contents": document_text + query_augment}
+            w.write(json.dumps(output_dict) + "\n")
             augmentations += 1
-        
+
+
 if __name__ == "__main__":
     main()
-

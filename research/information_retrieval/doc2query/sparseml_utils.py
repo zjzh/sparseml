@@ -1,11 +1,11 @@
 # Copyright (c) 2021 - present / Neuralmagic, Inc. All Rights Reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,7 +34,15 @@ class SparseMLQATrainer(QuestionAnsweringTrainer):
     :param args, kwargs: arguments passed into parent class
     """
 
-    def __init__(self, recipe, teacher=None, distill_hardness=0.5, distill_temperature=2.0, *args, **kwargs):
+    def __init__(
+        self,
+        recipe,
+        teacher=None,
+        distill_hardness=0.5,
+        distill_temperature=2.0,
+        *args,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self.recipe = recipe
         self.teacher = teacher
@@ -58,18 +66,26 @@ class SparseMLQATrainer(QuestionAnsweringTrainer):
         if self.recipe is None:
             return
         steps_per_epoch = math.ceil(
-            len(self.train_dataset) / (self.args.per_device_train_batch_size * self.args._n_gpu)
+            len(self.train_dataset)
+            / (self.args.per_device_train_batch_size * self.args._n_gpu)
         )
         self.manager = ScheduledModifierManager.from_yaml(self.recipe)
         self.args.num_train_epochs = float(self.manager.max_epochs)
         if hasattr(self, "scaler"):
             self.manager.initialize(self.model, epoch=0.0, loggers=self.loggers)
             self.scaler = self.manager.modify(
-                self.model, self.optimizer, steps_per_epoch=steps_per_epoch, wrap_optim=self.scaler
+                self.model,
+                self.optimizer,
+                steps_per_epoch=steps_per_epoch,
+                wrap_optim=self.scaler,
             )
         else:
             self.optimizer = ScheduledOptimizer(
-                self.optimizer, self.model, self.manager, steps_per_epoch=steps_per_epoch, loggers=self.loggers
+                self.optimizer,
+                self.model,
+                self.manager,
+                steps_per_epoch=steps_per_epoch,
+                loggers=self.loggers,
             )
 
     def compute_loss(self, model, inputs, return_outputs=False):
@@ -99,16 +115,24 @@ class SparseMLQATrainer(QuestionAnsweringTrainer):
             end_logits_teacher = teacher_output["end_logits"]
             loss_start = (
                 F.kl_div(
-                    input=F.log_softmax(start_logits_student / self.distill_temperature, dim=-1),
-                    target=F.softmax(start_logits_teacher / self.distill_temperature, dim=-1),
+                    input=F.log_softmax(
+                        start_logits_student / self.distill_temperature, dim=-1
+                    ),
+                    target=F.softmax(
+                        start_logits_teacher / self.distill_temperature, dim=-1
+                    ),
                     reduction="batchmean",
                 )
                 * (self.distill_temperature ** 2)
             )
             loss_end = (
                 F.kl_div(
-                    input=F.log_softmax(end_logits_student / self.distill_temperature, dim=-1),
-                    target=F.softmax(end_logits_teacher / self.distill_temperature, dim=-1),
+                    input=F.log_softmax(
+                        end_logits_student / self.distill_temperature, dim=-1
+                    ),
+                    target=F.softmax(
+                        end_logits_teacher / self.distill_temperature, dim=-1
+                    ),
                     reduction="batchmean",
                 )
                 * (self.distill_temperature ** 2)
@@ -117,7 +141,9 @@ class SparseMLQATrainer(QuestionAnsweringTrainer):
             loss_start = self.criterion(start_logits_student, start_logits_label)
             loss_end = self.criterion(end_logits_student, end_logits_label)
             label_loss = (loss_start + loss_end) / 2.0
-            loss = ((1 - self.distill_hardness) * label_loss) + (self.distill_hardness * teacher_loss)
+            loss = ((1 - self.distill_hardness) * label_loss) + (
+                self.distill_hardness * teacher_loss
+            )
         return (loss, outputs) if return_outputs else loss
 
 
@@ -130,6 +156,10 @@ def export_model(model, dataloader, output_dir):
     """
     exporter = ModuleExporter(model, output_dir=output_dir)
     for _, sample_batch in enumerate(dataloader):
-        sample_input = (sample_batch["input_ids"], sample_batch["attention_mask"], sample_batch["token_type_ids"])
+        sample_input = (
+            sample_batch["input_ids"],
+            sample_batch["attention_mask"],
+            sample_batch["token_type_ids"],
+        )
         exporter.export_onnx(sample_batch=sample_input, convert_qat=True)
         break

@@ -6,13 +6,13 @@
 # LICENSE file in the root directory of this source tree.
 
 # Copyright (c) 2021 - present / Neuralmagic, Inc. All Rights Reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,30 +28,29 @@ import json
 import logging
 import pickle
 import time
-from typing import List, Tuple, Dict, Iterator
+from typing import Dict, Iterator, List, Tuple
 
-import hydra
 import numpy as np
 import torch
-from omegaconf import DictConfig, OmegaConf
 from torch import Tensor as T
 from torch import nn
 
+import hydra
 from dpr.data.biencoder_data import RepTokenSelector
-from dpr.data.qa_validation import calculate_matches, calculate_chunked_matches
+from dpr.data.qa_validation import calculate_chunked_matches, calculate_matches
 from dpr.data.retriever_data import KiltCsvCtxSrc, TableChunk
-from dpr.indexer.faiss_indexers import (
-    DenseIndexer,
-)
+from dpr.indexer.faiss_indexers import DenseIndexer
 from dpr.models import init_biencoder_components
 from dpr.models.biencoder import BiEncoder, _select_span_with_token
-from dpr.options import setup_logger, setup_cfg_gpu, set_cfg_params_from_state
+from dpr.options import set_cfg_params_from_state, setup_cfg_gpu, setup_logger
 from dpr.utils.data_utils import Tensorizer
 from dpr.utils.model_utils import (
-    setup_for_distributed_mode,
     get_model_obj,
     load_states_from_checkpoint,
+    setup_for_distributed_mode,
 )
+from omegaconf import DictConfig, OmegaConf
+
 
 logger = logging.getLogger()
 setup_logger(logger)

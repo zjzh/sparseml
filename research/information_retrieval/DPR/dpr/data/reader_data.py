@@ -6,13 +6,13 @@
 # LICENSE file in the root directory of this source tree.
 
 # Copyright (c) 2021 - present / Neuralmagic, Inc. All Rights Reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,14 +31,15 @@ import math
 import multiprocessing
 import os
 import pickle
-import torch
-
 from functools import partial
-from typing import Tuple, List, Dict, Iterable, Optional
+from typing import Dict, Iterable, List, Optional, Tuple
+
+import torch
 from torch import Tensor as T
 from tqdm import tqdm
 
 from dpr.utils.data_utils import Tensorizer, read_serialized_data_from_files
+
 
 logger = logging.getLogger()
 

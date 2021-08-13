@@ -6,13 +6,13 @@
 # LICENSE file in the root directory of this source tree.
 
 # Copyright (c) 2021 - present / Neuralmagic, Inc. All Rights Reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,7 +26,7 @@ BiEncoder component + loss function for 'all-in-batch' training
 import collections
 import logging
 import random
-from typing import Tuple, List
+from typing import List, Tuple
 
 import numpy as np
 import torch
@@ -37,6 +37,7 @@ from torch import nn
 from dpr.data.biencoder_data import BiEncoderSample
 from dpr.utils.data_utils import Tensorizer
 from dpr.utils.model_utils import CheckpointState
+
 
 logger = logging.getLogger(__name__)
 

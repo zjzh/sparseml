@@ -6,13 +6,13 @@
 # LICENSE file in the root directory of this source tree.
 
 # Copyright (c) 2021 - present / Neuralmagic, Inc. All Rights Reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,37 +32,34 @@ import sys
 import time
 from typing import Tuple
 
-import hydra
 import torch
-from omegaconf import DictConfig, OmegaConf
 from torch import Tensor as T
 from torch import nn
 
+import hydra
 from dpr.models import init_biencoder_components
-from dpr.models.biencoder import BiEncoder, BiEncoderNllLoss, BiEncoderBatch
+from dpr.models.biencoder import BiEncoder, BiEncoderBatch, BiEncoderNllLoss
 from dpr.options import (
-    setup_cfg_gpu,
-    set_seed,
     get_encoder_params_state_from_cfg,
     set_cfg_params_from_state,
+    set_seed,
+    setup_cfg_gpu,
     setup_logger,
 )
 from dpr.utils.conf_utils import BiencoderDatasetsCfg
-from dpr.utils.data_utils import (
-    ShardedDataIterator,
-    Tensorizer,
-    MultiSetDataIterator,
-)
+from dpr.utils.data_utils import MultiSetDataIterator, ShardedDataIterator, Tensorizer
 from dpr.utils.dist_utils import all_gather_list
 from dpr.utils.model_utils import (
-    setup_for_distributed_mode,
-    move_to_device,
-    get_schedule_linear,
     CheckpointState,
     get_model_file,
     get_model_obj,
+    get_schedule_linear,
     load_states_from_checkpoint,
+    move_to_device,
+    setup_for_distributed_mode,
 )
+from omegaconf import DictConfig, OmegaConf
+
 
 logger = logging.getLogger()
 setup_logger(logger)
@@ -207,9 +204,7 @@ class BiEncoderTrainer(object):
                 steps_shift=shift,
             )
         else:
-            scheduler = get_schedule_linear(
-                self.optimizer, warmup_steps, total_updates
-            )
+            scheduler = get_schedule_linear(self.optimizer, warmup_steps, total_updates)
 
         eval_step = math.ceil(updates_per_epoch / cfg.train.eval_per_epoch)
         logger.info("  Eval step = %d", eval_step)

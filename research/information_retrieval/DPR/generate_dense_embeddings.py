@@ -6,13 +6,13 @@
 # LICENSE file in the root directory of this source tree.
 
 # Copyright (c) 2021 - present / Neuralmagic, Inc. All Rights Reserved.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,23 +30,23 @@ import pathlib
 import pickle
 from typing import List, Tuple
 
-import hydra
 import numpy as np
 import torch
-from omegaconf import DictConfig, OmegaConf
 from torch import nn
 
+import hydra
 from dpr.data.biencoder_data import BiEncoderPassage
 from dpr.models import init_biencoder_components
 from dpr.options import set_cfg_params_from_state, setup_cfg_gpu, setup_logger
-
 from dpr.utils.data_utils import Tensorizer
 from dpr.utils.model_utils import (
-    setup_for_distributed_mode,
     get_model_obj,
     load_states_from_checkpoint,
     move_to_device,
+    setup_for_distributed_mode,
 )
+from omegaconf import DictConfig, OmegaConf
+
 
 logger = logging.getLogger()
 setup_logger(logger)
@@ -107,6 +107,7 @@ def gen_ctx_vectors(
         if total % 10 == 0:
             logger.info("Encoded passages %d", total)
     return results
+
 
 @hydra.main(config_path="conf", config_name="gen_embs")
 def main(cfg: DictConfig):
