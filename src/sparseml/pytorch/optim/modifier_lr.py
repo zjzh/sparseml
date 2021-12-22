@@ -27,6 +27,7 @@ from torch.optim.lr_scheduler import (
     ExponentialLR,
     MultiStepLR,
     StepLR,
+    OneCycleLR
 )
 from torch.optim.optimizer import Optimizer
 
@@ -60,6 +61,7 @@ CONSTRUCTORS = {
     "MultiStepLR": MultiStepLR,
     "ExponentialLR": ExponentialLR,
     "CosineAnnealingWarmRestarts": CosineAnnealingWarmRestarts,
+    "OneCycleLR": OneCycleLR
 }
 
 

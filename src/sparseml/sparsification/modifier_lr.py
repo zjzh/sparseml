@@ -226,6 +226,11 @@ class LearningRateModifier(BaseModifier, BaseScheduled, BaseUpdate):
                 raise ValueError(
                     "cycle_epochs must be in lr_kwargs for CosineAnnealingWarmRestarts"
                 )
+        elif self._lr_class == "OneCycleLR":
+            if "max_lr" not in self._lr_kwargs:
+                raise ValueError(
+                    "max_lr must be in lr_kwargs for OneCycleLR"
+                )                
         else:
             raise ValueError("unknown lr_class given of {}".format(self._lr_class))
 
@@ -283,6 +288,8 @@ class LearningRateModifier(BaseModifier, BaseScheduled, BaseUpdate):
             del lr_kwargs["lr_min"]
             lr_kwargs["T_0"] = lr_kwargs["cycle_epochs"]
             del lr_kwargs["cycle_epochs"]
+        elif lr_class == "OneCycleLR":
+            pass
         else:
             raise ValueError("unrecognized lr_class given of {}".format(lr_class))
 
