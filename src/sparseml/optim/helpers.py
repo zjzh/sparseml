@@ -149,14 +149,14 @@ def update_recipe_variables(recipe_yaml_str: str, variables: Dict[str, Any]) -> 
         # yaml string does not create a dict, return original string
         return recipe_yaml_str
 
-    for key in variables:
-        if key not in container:
-            raise ValueError(
-                f"updating recipe variable {key} but {key} is not currently "
-                "set in existing recipe. Set the variable in the recipe in order "
-                "to overwrite it."
-            )
-
+    # for key in variables:
+    #     if key not in container:
+    #         raise ValueError(
+    #             f"updating recipe variable {key} but {key} is not currently "
+    #             "set in existing recipe. Set the variable in the recipe in order "
+    #             "to overwrite it."
+    #         )
+    variables = {v: variables[v] for v in variables if v in container}
     container.update(variables)
     return rewrite_recipe_yaml_string_with_classes(container)
 
