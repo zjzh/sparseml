@@ -267,7 +267,7 @@ class QATWrapper(Module):
         return qconfigs
 
 
-def configure_module_qat_wrappers(module: Module):
+def configure_module_qat_wrappers(module: Module, quantize_stand_alone_matmul: bool = True):
     """
     if any submodule of the given module has the attribute wrap_qat == True,
     then it will be replaced by a QATWrapper of it created by QATWrapper.from_module.
@@ -279,9 +279,16 @@ def configure_module_qat_wrappers(module: Module):
     # wrap any children of the given module as a QATWrapper if required
     for child_name, child_module in module.named_children():
         if hasattr(child_module, "wrap_qat") and child_module.wrap_qat:
+
+            # Tuan: begin
+            cls_name = child_module.__class__.__name__
+            if cls_name == "QATMatMul" and not quantize_stand_alone_matmul:
+                continue
+            # Tuan: end
+
             setattr(module, child_name, QATWrapper.from_module(child_module))
         # recurse on child module
-        configure_module_qat_wrappers(child_module)
+        configure_module_qat_wrappers(child_module, quantize_stand_alone_matmul)
 
 
 def configure_module_default_qconfigs(module: Module):
@@ -336,13 +343,13 @@ class WeightMinMaxObserver(torch_quantization.MinMaxObserver):
             return x_orig
         self.min_val.copy_(torch.tensor(float("inf")))
         self.max_val.copy_(torch.tensor(float("-inf")))
-        import pdb; pdb.set_trace()
         return super().forward(x_orig)
 
 
 def get_qat_qconfig(
     symmetric_activations: bool = False,
     symmetric_weights: bool = True,
+    weight_observer_cls_name: str = "MovingAverageMinMaxObserver"
 ) -> "torch.quantization.QConfig":
     """
     :param symmetric_activations: if True, activations will have a symmetric
@@ -370,8 +377,18 @@ def get_qat_qconfig(
     weight_qscheme = (
         torch.per_tensor_symmetric if symmetric_weights else torch.per_tensor_affine
     )
+
+    observer = None
+    if weight_observer_cls_name == "MovingAverageMinMaxObserver":
+        observer = torch_quantization.MovingAverageMinMaxObserver
+    elif weight_observer_cls_name == "WeightMinMaxObserver":
+        observer = WeightMinMaxObserver
+    elif weight_observer_cls_name == "MinMaxObserver":
+        observer = torch_quantization.MinMaxObserver
+    else:
+        assert False
     weight_observer = torch_quantization.FakeQuantize.with_args(
-        observer=WeightMinMaxObserver,
+        observer=observer,
         quant_min=-128,
         quant_max=127,
         dtype=torch.qint8,
