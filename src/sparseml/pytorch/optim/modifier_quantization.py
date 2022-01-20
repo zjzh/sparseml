@@ -44,6 +44,7 @@ from sparseml.pytorch.utils.quantization import (
     fuse_module_conv_bn_relus,
     get_qat_qconfig,
     prepare_embeddings_qat,
+    remove_linear_activation_quant
 )
 
 
@@ -108,7 +109,8 @@ class QuantizationModifier(ScheduledModifier):
         quantize_embeddings: bool = True,
         # Tuan: begin
         weight_observer_cls_name: str = "MovingAverageMinMaxObserver",
-        quantize_stand_alone_matmul: bool = True
+        quantize_stand_alone_matmul: bool = True,
+        quantize_linear_activations: bool = True
         # Tuan: end
     ):
         if torch_quantization is None or torch_intrinsic is None:
@@ -133,8 +135,9 @@ class QuantizationModifier(ScheduledModifier):
         self._freeze_bn_stats_epoch = freeze_bn_stats_epoch
         self._quantize_embeddings = quantize_embeddings
 
-        self.weight_observer_cls_name = weight_observer_cls_name
+        self._weight_observer_cls_name = weight_observer_cls_name
         self._quantize_stand_alone_matmul = quantize_stand_alone_matmul
+        self._quantize_linear_activations = quantize_linear_activations
 
         self._modules_to_quantize = None
         self._qat_enabled = False
@@ -385,7 +388,7 @@ class QuantizationModifier(ScheduledModifier):
             fuse_module_conv_bn_relus(module, **self._model_fuse_fn_kwargs)
 
         # prepare each module / submodule for quantization
-        qconfig = get_qat_qconfig(weight_observer_cls_name=self.weight_observer_cls_name)
+        qconfig = get_qat_qconfig(weight_observer_cls_name=self._weight_observer_cls_name)
         for name, quant_module in self._modules_to_quantize:
             # wrap any modules with wrap_qat set to True as QATWrapper(s)
             configure_module_qat_wrappers(quant_module, self._quantize_stand_alone_matmul)
@@ -395,6 +398,10 @@ class QuantizationModifier(ScheduledModifier):
             torch_quantization.propagate_qconfig_(quant_module)
             configure_module_default_qconfigs(quant_module)
 
+            # Tuan: begin
+            if not self._quantize_linear_activations:
+                remove_linear_activation_quant(quant_module)
+            # Tuan: end
             add_quant_dequant(quant_module, name, module)
 
         # set modules with proper qconfigs to QAT mode
@@ -459,4 +466,4 @@ class QuantizationModifier(ScheduledModifier):
                 )
             )
 
-        assert self.weight_observer_cls_name in ["MovingAverageMinMaxObserver","WeightMinMaxObserver", "MinMaxObserver"]
+        assert self._weight_observer_cls_name in ["MovingAverageMinMaxObserver","WeightMinMaxObserver", "MinMaxObserver"]
